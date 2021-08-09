@@ -112,7 +112,7 @@ impl SensorSettings {
     /// # FIFO_CTRL: [F_MODE2][F_MODE1][F_MODE0][WTM_POINT4][WTM_POINT3][WTM_POINT2][WTM_POINT1][WTM_POINT0]
     /// - F_MODE[2:0] - FIFO mode selection, default 000, see table 22 and section 4 for details
     /// - WTM_POINT[4:0] - FIFO threshold (watermark) level selection, see table 23 for details
-    pub fn interrupt_cfg(&self) -> u8 {
+    pub fn fifo_ctrl(&self) -> u8 {
         let mut result = 0_u8;
         
         result        
@@ -121,6 +121,10 @@ impl SensorSettings {
     
 
 }
+
+
+ 
+
 
 /// Output data rate and power mode selection (ODR). (Refer to Table 20)
 #[derive(Debug, Clone, Copy)]
@@ -139,10 +143,150 @@ pub enum ODR {
 
 impl ODR {
     pub fn value(self) -> u8 {
-        (self as u8) << 4
+        (self as u8) << 4 // shifted into the right position, can be used directly
     }
 }
 
+
+/// SPI interface mode
+#[derive(Debug, Clone, Copy)]
+pub enum SPI_Mode {
+    /// 4-wire mode (default)
+    _4wire,
+    /// 3-wire mode
+    _3wire,    
+}
+
+
+
+
+/// INT_DRDY pin configuration. (Refer to Table 21)
+#[derive(Debug, Clone, Copy)]
+pub enum INT_DRDY {
+    /// Data signal (see CTRL_REG4)
+    DataSignal = 0b00,
+    /// Pressure high
+    P_high = 0b01,
+    /// Pressure low
+    P_low = 0b10,
+    /// Pressure low or high
+    P_low_or_high = 0b011,
+    
+}
+
+impl INT_DRDY {
+    pub fn value(self) -> u8 {
+        self as u8 // no need to shift, bits 0:1
+    }
+}
+
+
+/// FIFO mode selection. (Refer to Table 22)
+#[derive(Debug, Clone, Copy)]
+pub enum FIFO_MODE {
+    /// Bypass mode
+    Bypass = 0b000,
+    /// FIFO mode
+    FIFO = 0b001,
+    /// Stream mode
+    Stream = 0b010,
+    /// Stream-to-FIFO mode
+    Stream_to_FIFO = 0b011,
+    /// Bypass-to-stream mode
+    Bypass_to_stream = 0b100,
+    /// FIFO Mean mode
+    FIFO_Mean = 0b110,
+    /// Bypass-to-FIFO mode
+    Bypass_to_FIFO = 0b111,
+    
+}
+
+impl FIFO_MODE {
+    pub fn value(self) -> u8 {
+        (self as u8) << 5 // shifted into the right position, can be used directly
+    }
+}
+
+/// FIFO Mean mode running average sample size. (Refer to Table 23)
+#[derive(Debug, Clone, Copy)]
+pub enum FIFO_MEAN {
+    /// 2-sample moving average
+    _2sample = 0b00001,
+    /// 4-sample moving average
+    _4sample = 0b00011,
+    /// 8-sample moving average
+    _8sample = 0b00111,
+    /// 16-sample moving average
+    _16sample = 0b01111,
+    /// 32-sample moving average
+    _32sample = 0b11111,
+    
+}
+
+impl FIFO_MEAN {
+    pub fn value(self) -> u8 {
+        self as u8 // no need to shift, bits 0:4
+    }
+}
+
+
+/// Temperature resolution configuration, number of internal average(Refer to Table 18)
+#[derive(Debug, Clone, Copy)]
+pub enum TEMP_RES {
+    /// Nr. internal average 8
+    _8 = 0b00,
+    /// Nr. internal average 16
+    _16 = 0b01,
+    /// Nr. internal average 32
+    _32 = 0b10,
+    /// Nr. internal average 64
+    _64 = 0b11,
+    
+}
+
+impl TEMP_RES {
+    pub fn value(self) -> u8 {
+        (self as u8) << 2 // shifted into the right position, can be used directly
+    }
+}
+
+/// Pressure resolution configuration, number of internal average(Refer to Table 19)
+#[derive(Debug, Clone, Copy)]
+pub enum PRESS_RES {
+    /// Nr. internal average 8
+    _8 = 0b00,
+    /// Nr. internal average 32
+    _32 = 0b01,
+    /// Nr. internal average 128
+    _128 = 0b10,
+    /// Nr. internal average 512
+    _512 = 0b11,
+    
+}
+
+impl PRESS_RES {
+    pub fn value(self) -> u8 {
+        self as u8 // no need to shift
+    }
+}
+
+
+/// Two possible choices, used for various enable/disable bit flags
+#[allow(non_camel_case_types)]
+#[derive(Copy, Clone, Debug)]
+
+pub enum Control {    
+    /// Enable some feature, eg. timer 
+    On, 
+    /// Disable some feature, eg. timer
+    Off,     
+}
+
+impl Control {
+    pub fn value(self) -> u8 {
+        self as u8
+    }
+}
 
 
 #[test]
