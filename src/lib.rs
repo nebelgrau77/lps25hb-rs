@@ -326,6 +326,95 @@ where
         }
     }
 
+    /// FIFO empty flag on INT_DRDY pin
+    pub fn fifo_empty_drdy_config(&mut self, flag: Control) -> Result<(), T::Error> {
+        match flag {
+            Control::On => {
+                self.set_register_bit_flag(Registers::CTRL_REG4, F_EMPTY)
+            }
+            Control::Off => {
+                self.clear_register_bit_flag(Registers::CTRL_REG4, F_EMPTY)
+            }
+        }
+    }
+
+    /// FIFO filled up to threshold (watermark) level on INT_DRDY pin 
+    pub fn fifo_filled_drdy_config(&mut self, flag: Control) -> Result<(), T::Error> {
+        match flag {
+            Control::On => {
+                self.set_register_bit_flag(Registers::CTRL_REG4, F_FTH)
+            }
+            Control::Off => {
+                self.clear_register_bit_flag(Registers::CTRL_REG4, F_FTH)
+            }
+        }
+    }
+
+    /// FIFO overrun interrupt on INT_DRDY pin 
+    pub fn fifo_overrun_drdy_config(&mut self, flag: Control) -> Result<(), T::Error> {
+        match flag {
+            Control::On => {
+                self.set_register_bit_flag(Registers::CTRL_REG4, F_OVR)
+            }
+            Control::Off => {
+                self.clear_register_bit_flag(Registers::CTRL_REG4, F_OVR)
+            }
+        }
+    }
+
+    /// Data-ready signal on INT_DRDY pin 
+    pub fn data_signal_drdy_config(&mut self, flag: Control) -> Result<(), T::Error> {
+        match flag {
+            Control::On => {
+                self.set_register_bit_flag(Registers::CTRL_REG4, DRDY)
+            }
+            Control::Off => {
+                self.clear_register_bit_flag(Registers::CTRL_REG4, DRDY)
+            }
+        }
+    }
+
+
+    // a block of get_status functions, following this example:
+    // 
+    // pub fn get_voltage_low_flag(&mut self) -> Result<bool, Error<E>> {
+    //    self.is_register_bit_flag_high(Register::VL_SECONDS, BitFlags::VL)} 
+
+    /// Has any interrupt event been generated? (self clearing)
+    pub fn interrupt_active(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::INT_SOURCE, IA)
+    }
+
+    /// Has low differential pressure event been generated? (self clearing)
+    pub fn low_pressure_event_occurred(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::INT_SOURCE, PL)
+    }
+
+    /// Has high differential pressure event been generated? (self clearing)
+    pub fn high_pressure_event_occurred(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::INT_SOURCE, PL)
+    }
+
+    /// Has new pressure data overwritten the previous one?
+    pub fn pressure_data_overrun(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::STATUS_REG, P_OR)
+    }
+
+    /// Has new temperature data overwritten the previous one?
+    pub fn temperature_data_overrun(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::STATUS_REG, T_OR)
+    }
+
+    /// Is new pressure data available?
+    pub fn pressure_data_available(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::STATUS_REG, P_DA)
+    }
+
+    /// Is new temperature data available?
+    pub fn temperature_data_available(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::STATUS_REG, T_DA)
+    }
+
     /// Raw sensor reading (3 bytes of pressure data and 2 bytes of temperature data)
     fn read_sensor_raw(&mut self) -> Result<(i32, i16), T::Error> {
         let mut data = [0u8;5];
@@ -380,6 +469,13 @@ where
         self.interface.read(address.addr(), &mut reg_data)?;
         Ok(reg_data[0])
     }
+
+    /// Check if specific bits are set.
+    fn is_register_bit_flag_high(&mut self, address: Registers, bitmask: u8) -> Result<bool, T::Error> {
+        let data = self.read_register(address)?;
+        Ok((data & bitmask) != 0)
+    }
+
 
 
     /// FOR DEBUGGING PURPOSES ONLY

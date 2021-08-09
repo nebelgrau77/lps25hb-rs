@@ -130,5 +130,16 @@ impl Bitmasks {
  pub const F_MODE_MASK: u8 = 0b1110_0000;
  pub const WTM_POINT_MASK: u8 = 0b0001_1111;
 
+ // === INT_SOURCE (0x25) ===
+ pub const IA: u8 = 0b0000_0100;
+ pub const PL: u8 = 0b0000_0010;
+ pub const PH: u8 = 0b0000_0001;
+
+// === STATUS_REG (0x27) ===
+pub const P_OR: u8 = 0b0010_0000;
+pub const T_OR: u8 = 0b0001_0000;
+pub const P_DA: u8 = 0b0000_0010;
+pub const T_DA: u8 = 00000_b0001;
+
  // === MULTIBYTE READ ===
  pub const MULTIBYTE: u8 = 0b1000_0000;
