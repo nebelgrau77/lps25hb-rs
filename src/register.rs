@@ -139,7 +139,13 @@ impl Bitmasks {
 pub const P_OR: u8 = 0b0010_0000;
 pub const T_OR: u8 = 0b0001_0000;
 pub const P_DA: u8 = 0b0000_0010;
-pub const T_DA: u8 = 00000_b0001;
+pub const T_DA: u8 = 0b0000_0001;
+
+// === FIFO_STATUS (0x2F) ===
+pub const FTH_FIFO: u8 = 0b1000_0000;
+pub const OVR: u8 = 0b0100_0000;
+pub const EMPTY_FIFO: u8 = 0b0010_0000;
+pub const FSS_MASK: u8 = 0b0001_1111;
 
  // === MULTIBYTE READ ===
  pub const MULTIBYTE: u8 = 0b1000_0000;

@@ -262,7 +262,7 @@ where
 
 
     /// Select FIFO operation mode (see Table 22 for details)        
-    pub fn set_fifo_mode(&mut self, mode: FIFO_MODE) -> Result<(), T::Error> {
+    pub fn fifo_mode_config(&mut self, mode: FIFO_MODE) -> Result<(), T::Error> {
         let mut reg_data = [0u8];
         self.interface.read(Registers::FIFO_CTRL.addr(), &mut reg_data)?;
         let mut payload = reg_data[0];
@@ -415,6 +415,21 @@ where
         self.is_register_bit_flag_high(Registers::STATUS_REG, T_DA)
     }
 
+    /// Is FIFO filling equal or higher than the threshold?
+    pub fn fifo_threshold_status(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::FIFO_STATUS, FTH_FIFO)
+    }
+
+    /// Is FIFO full and at least one sample has been overwritten?
+    pub fn fifo_overrun_status(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::FIFO_STATUS, OVR)
+    }
+
+    /// Is FIFO empty?
+    pub fn fifo_empty_status(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::FIFO_STATUS, EMPTY_FIFO)
+    }
+
     /// Raw sensor reading (3 bytes of pressure data and 2 bytes of temperature data)
     fn read_sensor_raw(&mut self) -> Result<(i32, i16), T::Error> {
         let mut data = [0u8;5];
@@ -463,8 +478,10 @@ where
         Ok(())
     }
 
+
+    // CHANGE BACK TO PRIVATE
     /// Read a byte from the given register.
-    fn read_register(&mut self, address: Registers) -> Result<u8, T::Error> {
+    pub fn read_register(&mut self, address: Registers) -> Result<u8, T::Error> {
         let mut reg_data = [0u8];
         self.interface.read(address.addr(), &mut reg_data)?;
         Ok(reg_data[0])
