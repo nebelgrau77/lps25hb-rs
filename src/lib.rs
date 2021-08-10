@@ -30,8 +30,13 @@ use sensor::*;
 pub mod register;
 use register::*;
 
+pub mod fifo;
+use fifo::*;
+
 pub mod interface;
 use interface::Interface;
+
+
 
 /// Sensor's ID 
 const WHOAMI: u8 = 0b10111101; // decimal value 189
@@ -248,46 +253,48 @@ where
         Ok(())
     }
     
-    /// FIFO enable/disable
-    pub fn fifo_config(&mut self, flag: Control) -> Result<(), T::Error> {
-        match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::CTRL_REG2, FIFO_EN)
-            }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::CTRL_REG2, FIFO_EN)
-            }
+    
+
+/// FIFO enable/disable
+pub fn fifo_config(&mut self, flag: Control) -> Result<(), T::Error> {
+    match flag {
+        Control::On => {
+            self.set_register_bit_flag(Registers::CTRL_REG2, FIFO_EN)
+        }
+        Control::Off => {
+            self.clear_register_bit_flag(Registers::CTRL_REG2, FIFO_EN)
         }
     }
+}
 
 
-    /// Select FIFO operation mode (see Table 22 for details)        
-    pub fn fifo_mode_config(&mut self, mode: FIFO_MODE) -> Result<(), T::Error> {
-        let mut reg_data = [0u8];
-        self.interface.read(Registers::FIFO_CTRL.addr(), &mut reg_data)?;
-        let mut payload = reg_data[0];
-        payload &= !F_MODE_MASK;
-        payload |= mode.value();
-        self.interface.write(
-            Registers::FIFO_CTRL.addr(),
-            payload,
-        )?;
-        Ok(())
-    }
+/// Select FIFO operation mode (see Table 22 for details)        
+pub fn fifo_mode_config(&mut self, mode: FIFO_MODE) -> Result<(), T::Error> {
+    let mut reg_data = [0u8];
+    self.interface.read(Registers::FIFO_CTRL.addr(), &mut reg_data)?;
+    let mut payload = reg_data[0];
+    payload &= !F_MODE_MASK;
+    payload |= mode.value();
+    self.interface.write(
+        Registers::FIFO_CTRL.addr(),
+        payload,
+    )?;
+    Ok(())
+}
 
-    /// Select sample size for FIFO Mean mode running average (see Table 23 for details)        
-    pub fn fifo_mean_config(&mut self, sample: FIFO_MEAN) -> Result<(), T::Error> {
-        let mut reg_data = [0u8];
-        self.interface.read(Registers::FIFO_CTRL.addr(), &mut reg_data)?;
-        let mut payload = reg_data[0];
-        payload &= !WTM_POINT_MASK;
-        payload |= sample.value();
-        self.interface.write(
-            Registers::FIFO_CTRL.addr(),
-            payload,
-        )?;
-        Ok(())
-    }
+/// Select sample size for FIFO Mean mode running average (see Table 23 for details)        
+pub fn fifo_mean_config(&mut self, sample: FIFO_MEAN) -> Result<(), T::Error> {
+    let mut reg_data = [0u8];
+    self.interface.read(Registers::FIFO_CTRL.addr(), &mut reg_data)?;
+    let mut payload = reg_data[0];
+    payload &= !WTM_POINT_MASK;
+    payload |= sample.value();
+    self.interface.write(
+        Registers::FIFO_CTRL.addr(),
+        payload,
+    )?;
+    Ok(())
+}
 
 
     /// Interrupt request latching to INT_SOURCE
@@ -429,6 +436,8 @@ where
     pub fn fifo_empty_status(&mut self) -> Result<bool, T::Error> {
         self.is_register_bit_flag_high(Registers::FIFO_STATUS, EMPTY_FIFO)
     }
+
+
 
     /// Raw sensor reading (3 bytes of pressure data and 2 bytes of temperature data)
     fn read_sensor_raw(&mut self) -> Result<(i32, i16), T::Error> {
