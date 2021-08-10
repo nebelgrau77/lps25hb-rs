@@ -82,6 +82,7 @@ impl LPS25HBInit {
     }
 }
 
+/*
 /// LPS25HB sensor
 pub struct LPS25HB<T>
 where
@@ -90,12 +91,28 @@ where
     interface: T,
     //sensor: SensorSettings,    
 }
+ */
 
-impl<T> LPS25HB<T>
+pub struct LPS25HB<T> {
+    interface: T,
+}
+
+impl<T, E> LPS25HB<T> 
 where
-    T: Interface,
+    T: Interface<Error = E>,
 {   
     
+    /// Create a new instance of the LPS25HB driver.
+    pub fn new(interface: T) -> Self {
+        LPS25HB {interface}
+    }
+
+    /// Destroy driver instance, return interface instance.
+    pub fn destroy(self) -> T {
+        self.interface
+    }
+
+
     /// Verifies communication with WHO_AM_I register    
     pub fn sensor_is_reachable(&mut self) -> Result<bool, T::Error> {
         let mut bytes = [0u8; 1];
@@ -106,6 +123,7 @@ where
 
    /// `WHO_AM_I` register.
     pub fn get_device_id(&mut self) -> Result<u8, T::Error> {
+    //pub fn get_device_id(&mut self) -> Result<u8, Error<E>> {
         let mut data = [0u8;1];
         self.interface.read(Registers::WHO_AM_I.addr(), &mut data)?;
         let whoami = data[0];
