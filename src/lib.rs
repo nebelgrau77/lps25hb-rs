@@ -121,14 +121,7 @@ where
         Ok(bytes[0] == who_am_i)
     }
 
-   /// `WHO_AM_I` register.
-    pub fn get_device_id(&mut self) -> Result<u8, T::Error> {
-    //pub fn get_device_id(&mut self) -> Result<u8, Error<E>> {
-        let mut data = [0u8;1];
-        self.interface.read(Registers::WHO_AM_I.addr(), &mut data)?;
-        let whoami = data[0];
-        Ok(whoami)
-    }
+ 
 
     /// Enable single shot data acquisition (self cleared by hardware)
     pub fn enable_one_shot(&mut self) -> Result<(), T::Error> {

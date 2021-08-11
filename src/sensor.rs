@@ -9,6 +9,8 @@
 //! Pressure sensor settings, types
 #![allow(dead_code, non_camel_case_types)]
 
+use super::*;
+
 /// Pressure sensor settings. Use this struct to configure the sensor.
 #[derive(Debug)]
 pub struct SensorSettings {    
@@ -17,6 +19,28 @@ pub struct SensorSettings {
     //pub auto_addr_inc: bool,
 
 }
+
+
+impl<T, E> LPS25HB<T> 
+where
+    T: Interface<Error = E>,
+{   
+
+  /// `WHO_AM_I` register.
+  pub fn get_device_id(&mut self) -> Result<u8, T::Error> {
+    //pub fn get_device_id(&mut self) -> Result<u8, Error<E>> {
+        let mut data = [0u8;1];
+        self.interface.read(Registers::WHO_AM_I.addr(), &mut data)?;
+        let whoami = data[0];
+        Ok(whoami)
+    }
+
+
+}
+
+
+
+
 
 impl Default for SensorSettings {
     fn default() -> Self {
