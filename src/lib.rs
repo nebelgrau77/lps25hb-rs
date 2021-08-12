@@ -1,6 +1,11 @@
-//! TO DO: CHECK REGISTER NAMES, VALUES ETC. TO ADAPT FROM LPS22HB TO LPS25HB
+//! TO DO: 
 //! 
-//! IT'S WORKING BUT THE TEMPERATURE READINGS ARE OFF, AROUND 122
+//! - add remaining functions: interrupt pin settings, threshold settings, watermark
+//! - add remaining reading functions: watermark level, etc.
+//! - store bitflags as structs and modify functions accordingly
+//! - add an example
+//! - add the docs
+//! 
 //! 
 //!  
 //! NOTE: I2C MULTIBYTE READ
