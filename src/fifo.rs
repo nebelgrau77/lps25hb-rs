@@ -1,8 +1,13 @@
 //! Various functions related to FIFO
+//! 
+//! TO DO: 
+//! - watermark level selection
+//! - FIFO stored data level reading
+//! 
 
-// must use super here
 
-use super::*; // not enough
+
+use super::*; 
 
 impl<T, E> LPS25HB<T> 
 where
