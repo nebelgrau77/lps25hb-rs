@@ -1,11 +1,11 @@
 /target
 Cargo.lock
 notes.md
-/examples/**/target
-*.bin
-*.bkp
-**/*.rs.bkp
 .gdb_history
 *.bin
 *.hex
 *.elf
+/examples/**/target
+*.bin
+**/*.bkp
+**/*.rs.bkp
