@@ -7,30 +7,36 @@ based on the [`embedded-hal`] traits.
 
 [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
 
-Inspired by and partially based on [another STMicroelectronics MEMS driver](https://github.com/lonesometraveler/lsm9ds1).
+Inspired by and partially based on [another STMicroelectronics driver](https://github.com/lonesometraveler/lsm9ds1).
 
 This driver allows you to:
-- ~~read pressure and temperature~~
-- ~~check if sensor is reachable~~
+- check if sensor is reachable
+- read pressure and temperature
+- set data rate
+- configure interrupts generation
+- configure FIFO
 
-# EXPERIMENTAL - MAY NOT WORK!!!
 
-At the moment it is just copied from the existing and working LPS22HB, may need modifications.
+# UNDER ACTIVE DEVELOPMENT
+
+Basic functions work, see example. Almost all functions added, and should work fine, but many aren't tested yet.
 
 ## WORK IN PROGRESS:
 
 This library is work in progress. Not all features are implemented yet. Contributions are welcome.
 
 ### TO DO:
-- [ ] output data rate setting
-- [ ] interrupts configuration
-- [ ] FIFO configuration
-- [ ] reading reference pressure
-- [ ] calibration
-- [ ] reading data ready status
-- [ ] reading data overrun status
+- [ ] review function naming for uniformity (config/control/enable?)
+- [ ] replace Control::On/Off with bool
+- [ ] collect the bitmasks/bitflags in a struct
+- [ ] add an example using FIFO and/or interrupt generation
+- [ ] add SPI interface and an example using it
+- [ ] add threshold setting
+- [ ] add reference pressure reading
+- [ ] add documentation (main block in the lib.rs)
 
-[Some blog post](https://nebelgrau77.github.io/posts/rust_driver/)
+
+~~[Some blog post](https://nebelgrau77.github.io/posts/rust_driver/)~~
 
 ## The device
 
@@ -45,12 +51,12 @@ then instantiate the device.
 
 Please find additional examples using hardware in this repository: [examples]
 
-[examples]: https://github.com/nebelgrau77/lps22hb-rs/tree/main/examples
+[examples]: https://github.com/nebelgrau77/lps25hb-rs/tree/main/examples
 
 ## Support
 
 For questions, issues, feature requests, and other changes, please file an
-[issue in the github project](https://github.com/nebelgrau77/lps22hb-rs/issues).
+[issue in the github project](https://github.com/nebelgrau77/lps25hb-rs/issues).
 
 ## License
 

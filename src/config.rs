@@ -133,8 +133,6 @@ where
     }
 
 
-
-
     /// Interrupt request latching to INT_SOURCE
     pub fn int_latch_config(&mut self, flag: Control) -> Result<(), T::Error> {
         match flag {
@@ -169,9 +167,7 @@ where
                 self.clear_register_bit_flag(Registers::INTERRUPT_CFG, PH_E)
             }
         }
-    }
-
-   
+    }   
 
     /// Data-ready signal on INT_DRDY pin 
     pub fn data_signal_drdy_config(&mut self, flag: Control) -> Result<(), T::Error> {

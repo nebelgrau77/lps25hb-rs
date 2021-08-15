@@ -85,12 +85,7 @@ where
         self.set_register_bit_flag(Registers::CTRL_REG2, SWRESET)
     }
 
-
-    // a block of get_status functions, following this example:
-    // 
-    // pub fn get_voltage_low_flag(&mut self) -> Result<bool, Error<E>> {
-    //    self.is_register_bit_flag_high(Register::VL_SECONDS, BitFlags::VL)} 
-
+    
     /// Has any interrupt event been generated? (self clearing)
     pub fn interrupt_active(&mut self) -> Result<bool, T::Error> {
         self.is_register_bit_flag_high(Registers::INT_SOURCE, IA)

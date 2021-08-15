@@ -56,48 +56,8 @@ const TEMP_OFFSET: f32 = 42.5;
 /// The output of the pressure sensor must be divided by 4096, see Table 3 of the datasheet.
 const PRESS_SCALE: f32 = 4096.0;
 
-/*
-/// LPS22HB init struct.
-/// Use this struct to configure sensors and init LPS25HB with an interface of your choice.
-pub struct LPS25HBInit {
-    //pub sensor: SensorSettings,    
-}
 
-/*
-impl Default for LPS25HBInit {
-    fn default() -> Self {
-        Self {
-            sensor: SensorSettings::default(),            
-        }
-    }
-}
- */
-impl LPS25HBInit {
-    /// Constructs a new LPS25HB driver instance with a I2C or SPI peripheral.
-    ///
-    /// # Arguments
-    /// * `interface` - `SpiInterface` or `I2cInterface`
-    pub fn with_interface<T>(self, interface: T) -> LPS25HB<T>
-    where
-        T: Interface,
-    {
-        LPS25HB {
-            interface,
-            //sensor: self.sensor,            
-        }
-    }
-}
-
-/// LPS25HB sensor
-pub struct LPS25HB<T>
-where
-    T: Interface,
-{
-    interface: T,
-    //sensor: SensorSettings,    
-}
- */
-
+/// Holds the driver instance with the selected interface
 pub struct LPS25HB<T> {
     interface: T,
 }
@@ -129,9 +89,8 @@ where
     }
 
 
-    // CHANGE BACK TO PRIVATE
     /// Read a byte from the given register.
-    pub fn read_register(&mut self, address: Registers) -> Result<u8, T::Error> {
+    fn read_register(&mut self, address: Registers) -> Result<u8, T::Error> {
         let mut reg_data = [0u8];
         self.interface.read(address.addr(), &mut reg_data)?;
         Ok(reg_data[0])

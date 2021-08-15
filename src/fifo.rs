@@ -15,7 +15,7 @@ where
 {   
 
     /// FIFO enable/disable
-    pub fn fifo_config(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn fifo_control(&mut self, flag: Control) -> Result<(), T::Error> {
         match flag {
             Control::On => {
                 self.set_register_bit_flag(Registers::CTRL_REG2, FIFO_EN)
