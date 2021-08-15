@@ -26,9 +26,7 @@ Basic functions work, see example. Almost all functions added, and should work f
 This library is work in progress. Not all features are implemented yet. Contributions are welcome.
 
 ### TO DO:
-- [ ] review function naming for uniformity (config/control/enable?)
-- [ ] replace Control::On/Off with bool
-- [ ] collect the bitmasks/bitflags in a struct
+- [ ] add device ID check and power up in the `new()` function
 - [ ] add an example using FIFO and/or interrupt generation
 - [ ] add SPI interface and an example using it
 - [ ] add threshold setting

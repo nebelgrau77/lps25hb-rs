@@ -15,13 +15,13 @@ where
 {   
 
     /// FIFO enable/disable
-    pub fn fifo_control(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn fifo_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::CTRL_REG2, FIFO_EN)
+            true => {
+                self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN)
             }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::CTRL_REG2, FIFO_EN)
+            false => {
+                self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN)
             }
         }
     }
@@ -31,7 +31,7 @@ where
         let mut reg_data = [0u8];
         self.interface.read(Registers::FIFO_CTRL.addr(), &mut reg_data)?;
         let mut payload = reg_data[0];
-        payload &= !F_MODE_MASK;
+        payload &= !Bitmasks::F_MODE_MASK;
         payload |= mode.value();
         self.interface.write(
             Registers::FIFO_CTRL.addr(),
@@ -45,7 +45,7 @@ where
         let mut reg_data = [0u8];
         self.interface.read(Registers::FIFO_CTRL.addr(), &mut reg_data)?;
         let mut payload = reg_data[0];
-        payload &= !WTM_POINT_MASK;
+        payload &= !Bitmasks::WTM_POINT_MASK;
         payload |= sample.value();
         self.interface.write(
             Registers::FIFO_CTRL.addr(),
@@ -55,54 +55,54 @@ where
     }
 
     /// FIFO empty flag on INT_DRDY pin
-    pub fn fifo_empty_drdy_config(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn fifo_empty_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::CTRL_REG4, F_EMPTY)
+            true => {
+                self.set_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_EMPTY)
             }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::CTRL_REG4, F_EMPTY)
+            false => {
+                self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_EMPTY)
             }
         }
     }
 
     /// FIFO filled up to threshold (watermark) level on INT_DRDY pin 
-    pub fn fifo_filled_drdy_config(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn fifo_filled_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::CTRL_REG4, F_FTH)
+            true => {
+                self.set_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_FTH)
             }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::CTRL_REG4, F_FTH)
+            false => {
+                self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_FTH)
             }
         }
     }
 
     /// FIFO overrun interrupt on INT_DRDY pin 
-    pub fn fifo_overrun_drdy_config(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn fifo_overrun_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::CTRL_REG4, F_OVR)
+            true => {
+                self.set_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_OVR)
             }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::CTRL_REG4, F_OVR)
+            false => {
+                self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_OVR)
             }
         }
     }
 
     /// Is FIFO filling equal or higher than the threshold?
     pub fn fifo_threshold_status(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::FIFO_STATUS, FTH_FIFO)
+        self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::FTH_FIFO)
     }
 
     /// Is FIFO full and at least one sample has been overwritten?
     pub fn fifo_overrun_status(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::FIFO_STATUS, OVR)
+        self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::OVR)
     }
 
     /// Is FIFO empty?
     pub fn fifo_empty_status(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::FIFO_STATUS, EMPTY_FIFO)
+        self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::EMPTY_FIFO)
     }
 
 

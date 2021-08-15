@@ -18,7 +18,7 @@ where
         let mut reg_data = [0u8];
         self.interface.read(Registers::CTRL_REG1.addr(), &mut reg_data)?;
         let mut payload = reg_data[0];
-        payload &= !ODR_MASK;
+        payload &= !Bitmasks::ODR_MASK;
         payload |= odr.value();
         self.interface.write(
             Registers::CTRL_REG1.addr(),
@@ -32,7 +32,7 @@ where
         let mut reg_data = [0u8];
         self.interface.read(Registers::RES_CONF.addr(), &mut reg_data)?;
         let mut payload = reg_data[0];
-        payload &= !AVGT_MASK;
+        payload &= !Bitmasks::AVGT_MASK;
         payload |= resolution.value();
         self.interface.write(
             Registers::RES_CONF.addr(),
@@ -46,7 +46,7 @@ where
         let mut reg_data = [0u8];
         self.interface.read(Registers::RES_CONF.addr(), &mut reg_data)?;
         let mut payload = reg_data[0];
-        payload &= !AVGP_MASK;
+        payload &= !Bitmasks::AVGP_MASK;
         payload |= resolution.value();
         self.interface.write(
             Registers::RES_CONF.addr(),
@@ -55,67 +55,65 @@ where
         Ok(())
     }
 
- 
-
 
     /// Enable single shot data acquisition (self cleared by hardware)
     pub fn enable_one_shot(&mut self) -> Result<(), T::Error> {
-        self.set_register_bit_flag(Registers::CTRL_REG2, ONE_SHOT)?;
+        self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::ONE_SHOT)?;
         Ok(())
     }
 
 
     /// Enable or disable block data update
-    pub fn bdu_config(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn bdu_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::CTRL_REG1, BDU)
+            true => {
+                self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::BDU)
             }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::CTRL_REG1, BDU)
+            false => {
+                self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::BDU)
             }
         }
     }
 
     /// Configuration of the interrupt generation (enabled/disable)
-    pub fn int_gen_config(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn int_generation_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::CTRL_REG1, DIFF_EN)
+            true => {
+                self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN)
             }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::CTRL_REG1, DIFF_EN)
+            false => {
+                self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN)
             }
         }
     }
 
     /// Resets the Autozero function. Self-cleared.
     pub fn autozero_reset(&mut self) -> Result<(), T::Error> {
-        self.set_register_bit_flag(Registers::CTRL_REG1, RESET_AZ)
+        self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::RESET_AZ)
     }
 
     /// AUTOZERO: when set to ‘1’, the actual pressure output value is copied in
     /// REF_P_H (0Ah), REF_P_L (09h) and REF_P_XL (08h).
     /// When this bit is enabled, the register content of REF_P is subtracted from the pressure output value.
-    pub fn autozero_config(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn autozero_config(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::CTRL_REG2, AUTOZERO)
+            true => {
+                self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::AUTOZERO)
             }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::CTRL_REG2, AUTOZERO)
+            false => {
+                self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::AUTOZERO)
             }
         }
     }
 
     /// Disables I2C interface (default 0, I2C enabled)
-    pub fn i2c_disable(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn i2c_disable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::CTRL_REG2, I2C_DIS)
+            true => {
+                self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::I2C_DIS)
             }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::CTRL_REG2, I2C_DIS)
+            false => {
+                self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::I2C_DIS)
             }
         }
     }
@@ -124,59 +122,59 @@ where
     pub fn spi_config(&mut self, mode: SPI_Mode) -> Result<(), T::Error> {
         match mode {
             SPI_Mode::_3wire => {
-                self.set_register_bit_flag(Registers::CTRL_REG1, SIM)
+                self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::SIM)
             }
             SPI_Mode::_4wire => {
-                self.clear_register_bit_flag(Registers::CTRL_REG1, SIM)
+                self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::SIM)
             }
         } 
     }
 
 
     /// Interrupt request latching to INT_SOURCE
-    pub fn int_latch_config(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn int_latch_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::INTERRUPT_CFG, LIR)
+            true => {
+                self.set_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::LIR)
             }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::INTERRUPT_CFG, LIR)
+            false => {
+                self.clear_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::LIR)
             }
         }
     }
 
     /// Enable interrupt on differential pressure low event
-    pub fn diff_press_low_config(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn diff_press_low_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::INTERRUPT_CFG, PL_E)
+            true => {
+                self.set_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::PL_E)
             }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::INTERRUPT_CFG, PL_E)
+            false => {
+                self.clear_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::PL_E)
             }
         }
     }
 
     /// Enable interrupt on differential pressure high event
-    pub fn diff_press_high_config(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn diff_press_high_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::INTERRUPT_CFG, PH_E)
+            true => {
+                self.set_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::PH_E)
             }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::INTERRUPT_CFG, PH_E)
+            false => {
+                self.clear_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::PH_E)
             }
         }
     }   
 
     /// Data-ready signal on INT_DRDY pin 
-    pub fn data_signal_drdy_config(&mut self, flag: Control) -> Result<(), T::Error> {
+    pub fn data_signal_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::CTRL_REG4, DRDY)
+            true => {
+                self.set_register_bit_flag(Registers::CTRL_REG4, Bitmasks::DRDY)
             }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::CTRL_REG4, DRDY)
+            false => {
+                self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::DRDY)
             }
         }
     }

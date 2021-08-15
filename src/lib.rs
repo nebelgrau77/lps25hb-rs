@@ -1,29 +1,43 @@
-//! TO DO: 
-//! 
-//! - add remaining functions: interrupt pin settings, threshold settings, watermark
-//! - add remaining reading functions: watermark level, etc.
-//! - store bitflags as structs and modify functions accordingly
-//! - add an example
-//! - add the docs
-//! 
-//! 
-//!  
-//! NOTE: I2C MULTIBYTE READ
-//! In order to read multiple bytes incrementing the register address, it is necessary to assert
-//! the most significant bit of the sub-address field. In other words, SUB(7) must be equal to 1
-//! while SUB(6-0) represents the address of the first register to be read.
-//! 
-//! The I2C embedded in the LPS25HB behaves like a slave device and the following protocol
-//! must be adhered to. After the start condition (ST) a slave address is sent, once a slave
-//! acknowledge (SAK) has been returned, an 8-bit sub-address (SUB) will be transmitted: the 7
-//! LSB represents the actual register address while the MSB enables address auto increment.
-//! If the MSb of the SUB field is ‘1’, the SUB (register address) will be automatically increased
-//! to allow multiple data read/write.
-//! 
-//! 
 //! A platform agnostic driver to interface with LPS25HB pressure sensor module.
 //! 
+//! This driver allows you to:
+//! - read atmospheric pressure in hPa, see [`read_pressure()`]
+//! - read temperature in degrees Celsius, see [`read_temperature()`]
+//! - enable single-shot data acquisition, see [`enable_one_shot()`]
+//! - set data rate, see [`set_datarate()`]
 //! 
+//! [`read_pressure()`]: struct.LPS25HB.html#method.read_pressure
+//! [`read_temperature()`]: struct.LPS25HB.html#method.read_temperature
+//! [`enable_one_shot()`]: struct.LPS25HB.html#method.enable_one_shot
+//! [`set_datarate()`]: struct.LPS25HB.html#method.set_datarate
+//! 
+//! __NOTE__: This is an early version of the crate. Only I2C interface is supported at the moment.
+//!  
+//! 
+//! ### Datasheet: [LPS25HB](https://www.st.com/resource/en/datasheet/lps25hb.pdf)
+//! 
+//! ## Usage examples (see also examples folder)
+//! 
+//! Please find additional examples using hardware in this repository: [examples]
+//! 
+//! [examples]: https://github.com/nebelgrau77/lps25hb-rs/examples
+//! 
+//! ### Read pressure and temperature
+//! 
+//! ```rust
+//! 
+//! use lps25hb::interface::{I2cInterface, i2c::I2cAddress};
+//! use lps25hb::*;
+//! 
+//! let mut lps25 = LPS25HB.new(i2c_interface);
+//! 
+//! lps25hb.sensor_on(true).unwrap();
+//! 
+//! lps25.enable_one_shot().unwrap();
+//! 
+//! let pressure = lps25.read_pressure().unwrap();
+//! let temperature = lps25.read_temperature().unwrap();
+//! ```
 //!
 
 #![no_std]
@@ -78,6 +92,7 @@ where
     }
 
     
+    /*
     /// Verifies communication with WHO_AM_I register    
     /// 
     /// USE GET_DEVICE_ID FOR THIS
@@ -87,7 +102,7 @@ where
         self.interface.read(register, &mut bytes)?;
         Ok(bytes[0] == who_am_i)
     }
-
+     */
 
     /// Read a byte from the given register.
     fn read_register(&mut self, address: Registers) -> Result<u8, T::Error> {
@@ -126,6 +141,8 @@ where
         Ok((data & bitmask) != 0)
     }
 
+
+
     /*
 
     /// FOR DEBUGGING PURPOSES ONLY
@@ -136,3 +153,144 @@ where
     */
      
 }
+
+
+/// Output data rate and power mode selection (ODR). (Refer to Table 20)
+#[derive(Debug, Clone, Copy)]
+pub enum ODR {
+    /// One-shot mode enabled
+    OneShot = 0b000,
+    /// 1 Hz
+    _1Hz = 0b001,
+    /// 7 Hz
+    _7Hz = 0b010,
+    /// 12.5 Hz
+    _12_5Hz = 0b011,
+    /// 25 Hz
+    _25Hz = 0b100,    
+}
+
+impl ODR {
+    pub fn value(self) -> u8 {
+        (self as u8) << 4 // shifted into the right position, can be used directly
+    }
+}
+
+/// SPI interface mode
+#[derive(Debug, Clone, Copy)]
+pub enum SPI_Mode {
+    /// 4-wire mode (default)
+    _4wire,
+    /// 3-wire mode
+    _3wire,    
+}
+
+/// INT_DRDY pin configuration. (Refer to Table 21)
+#[derive(Debug, Clone, Copy)]
+pub enum INT_DRDY {
+    /// Data signal (see CTRL_REG4)
+    DataSignal = 0b00,
+    /// Pressure high
+    P_high = 0b01,
+    /// Pressure low
+    P_low = 0b10,
+    /// Pressure low or high
+    P_low_or_high = 0b011,
+    
+}
+
+impl INT_DRDY {
+    pub fn value(self) -> u8 {
+        self as u8 // no need to shift, bits 0:1
+    }
+}
+
+/// FIFO mode selection. (Refer to Table 22)
+#[derive(Debug, Clone, Copy)]
+pub enum FIFO_MODE {
+    /// Bypass mode
+    Bypass = 0b000,
+    /// FIFO mode
+    FIFO = 0b001,
+    /// Stream mode
+    Stream = 0b010,
+    /// Stream-to-FIFO mode
+    Stream_to_FIFO = 0b011,
+    /// Bypass-to-stream mode
+    Bypass_to_stream = 0b100,
+    /// FIFO Mean mode
+    FIFO_Mean = 0b110,
+    /// Bypass-to-FIFO mode
+    Bypass_to_FIFO = 0b111,
+    
+}
+
+impl FIFO_MODE {
+    pub fn value(self) -> u8 {
+        (self as u8) << 5 // shifted into the right position, can be used directly
+    }
+}
+
+/// FIFO Mean mode running average sample size. (Refer to Table 23)
+#[derive(Debug, Clone, Copy)]
+pub enum FIFO_MEAN {
+    /// 2-sample moving average
+    _2sample = 0b00001,
+    /// 4-sample moving average
+    _4sample = 0b00011,
+    /// 8-sample moving average
+    _8sample = 0b00111,
+    /// 16-sample moving average
+    _16sample = 0b01111,
+    /// 32-sample moving average
+    _32sample = 0b11111,
+    
+}
+
+impl FIFO_MEAN {
+    pub fn value(self) -> u8 {
+        self as u8 // no need to shift, bits 0:4
+    }
+}
+
+/// Temperature resolution configuration, number of internal average(Refer to Table 18)
+#[derive(Debug, Clone, Copy)]
+pub enum TEMP_RES {
+    /// Nr. internal average 8
+    _8 = 0b00,
+    /// Nr. internal average 16
+    _16 = 0b01,
+    /// Nr. internal average 32
+    _32 = 0b10,
+    /// Nr. internal average 64
+    _64 = 0b11,
+    
+}
+
+impl TEMP_RES {
+    pub fn value(self) -> u8 {
+        (self as u8) << 2 // shifted into the right position, can be used directly
+    }
+}
+
+/// Pressure resolution configuration, number of internal average(Refer to Table 19)
+#[derive(Debug, Clone, Copy)]
+pub enum PRESS_RES {
+    /// Nr. internal average 8
+    _8 = 0b00,
+    /// Nr. internal average 32
+    _32 = 0b01,
+    /// Nr. internal average 128
+    _128 = 0b10,
+    /// Nr. internal average 512
+    _512 = 0b11,
+    
+}
+
+impl PRESS_RES {
+    pub fn value(self) -> u8 {
+        self as u8 // no need to shift
+    }
+}
+
+

@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ...
 
+## [0.0.3] - 2021-08-15
+
+### Changed
+- Bitmasks are inside a struct
+- All "config/control" functions become "_enable", with a boolean parameter. 
+- Moved enums into lib.rs 
+
+## Removed
+- `Control` enum
+
 
 ## [0.0.2] - 2021-08-15
 
