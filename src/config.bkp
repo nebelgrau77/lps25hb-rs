@@ -2,7 +2,7 @@
 //! 
 //! TO DO:
 //! - set threshold value for pressure events generation (THS)
-//! - replace the Control:: with bool
+//! 
 
 
 use super::*; 
