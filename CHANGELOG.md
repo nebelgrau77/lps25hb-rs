@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-...
+### Added
+- reading threshold for pressure interrupt generation
+- setting threshold for pressure interrupt generation
+- setting pressure offset value
 
 ## [0.0.3] - 2021-08-16
 

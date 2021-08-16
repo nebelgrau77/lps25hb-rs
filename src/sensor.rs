@@ -66,20 +66,60 @@ where
     }
 
 
-    /* 
-    /// Turn the sensor on (sensor is in power down by default)
-    pub fn sensor_power(&mut self, flag: Control) -> Result<(), T::Error> {
-        match flag {
-            Control::On => {
-                self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::PD)
-            }
-            Control::Off => {
-                self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::PD)
-            }
-        }
+    /*
+    /// Set the pressure offset value (does it even make sense to expose this function?)
+    pub fn set_pressure_offset(&mut self, offset: u16) -> Result<(), T::Error> {        
+        let mut payload = [0u8;2];
+
+        payload[1] = ...; // upper byte
+        payload[0] = ...; // lower byte
+
+
+        self.interface.write(
+            Registers::RPDS_L.addr() | Bitmasks::MULTIBYTE,
+            payload,
+        )?;
+
+
+    }
+     */    
+    
+    /*
+    /// Set threshold value for pressure interrupt generation
+    pub fn set_threshold(&mut self, threshold: u16) -> Result<(), T::Error> {        
+        let mut payload = [0u8;2];
+
+        let threshold = threshold / 16; // The value is expressed as unsigned number: Interrupt threshold(hPA) = (THS_P)/16.
+
+
+        payload[1] = ...; // upper byte
+        payload[0] = ...; // lower byte
+
+
+        self.interface.write(
+            Registers::THS_P_L.addr() | Bitmasks::MULTIBYTE,
+            payload,
+        )?;
+
+
+    }
+     */    
+    
+    /*
+
+    /// Read threshold value for pressure interrupt generation
+    pub fn read_threshold(&mut self) -> Result<i16, T::Error> {
+        let mut data = [0u8;2];
+        self.interface.read(Registers::THS_P_L.addr() | Bitmasks::MULTIBYTE, &mut data)?;        
+        let ths: i16 = (data[1] as i16) << 8 | (data[0] as i16);
+        Ok(ths * 16)
     }
 
+
     */
+
+
+
 
 
     /// Turn the sensor on (sensor is in power down by default)
