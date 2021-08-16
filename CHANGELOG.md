@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ...
 
-## [0.0.3] - 2021-08-15
+## [0.0.3] - 2021-08-16
+
+### Added
+- Reading FIFO stored data level
+- Reading pressure offset value
 
 ### Changed
 - Bitmasks are inside a struct

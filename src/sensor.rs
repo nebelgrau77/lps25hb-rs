@@ -56,6 +56,16 @@ where
         Ok(temperature)
     }
 
+
+    /// Read pressure offset value, 16-bit data that can be used to implement One-Point Calibration (OPC) after soldering.
+    pub fn read_pressure_offset(&mut self) -> Result<i16, T::Error> {
+        let mut data = [0u8;2];
+        self.interface.read(Registers::RPDS_L.addr() | Bitmasks::MULTIBYTE, &mut data)?;        
+        let o: i16 = (data[1] as i16) << 8 | (data[0] as i16);
+        Ok(o)
+    }
+
+
     /* 
     /// Turn the sensor on (sensor is in power down by default)
     pub fn sensor_power(&mut self, flag: Control) -> Result<(), T::Error> {

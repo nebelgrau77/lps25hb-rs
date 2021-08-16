@@ -105,5 +105,19 @@ where
         self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::EMPTY_FIFO)
     }
 
+    /// Read FIFO stored data level
+    pub fn read_fifo_level(&mut self) -> Result<u8, T::Error> {
+        let mut reg_data = [0u8];
+        self.interface.read(Registers::FIFO_STATUS.addr(), &mut reg_data)?;
+        
+        let fifo_level: u8 = match self.fifo_empty_status() {
+            true => 0,
+            false => (data & Bitmasks::FSS_MASK) + 1;
+        }
+        Ok(fifo_level)
+        
+    }
+
+
 
 }
