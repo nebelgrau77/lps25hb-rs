@@ -112,9 +112,9 @@ where
         
         let fifo_level: u8 = match self.fifo_empty_status()? {
             true => 0,
-            false => (reg_data & Bitmasks::FSS_MASK) + 1,
+            false => (reg_data[0] & Bitmasks::FSS_MASK) + 1,
         };
-        
+
         Ok(fifo_level)
         
     }
