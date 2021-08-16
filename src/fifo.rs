@@ -110,7 +110,7 @@ where
         let mut reg_data = [0u8];
         self.interface.read(Registers::FIFO_STATUS.addr(), &mut reg_data)?;
         
-        let fifo_level: u8 = match self.fifo_empty_status() {
+        let fifo_level: u8 = match self.fifo_empty_status()? {
             true => 0,
             false => (data & Bitmasks::FSS_MASK) + 1;
         }

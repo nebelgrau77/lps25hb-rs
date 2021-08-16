@@ -30,8 +30,7 @@ This library is work in progress. Not all features are implemented yet. Contribu
 - [ ] add an example using FIFO and/or interrupt generation
 - [ ] add SPI interface and an example using it
 - [ ] add threshold setting
-- [ ] add reference pressure reading
-- [ ] add documentation (main block in the lib.rs)
+- [ ] add more documentation (main block in the lib.rs)
 
 
 ~~[Some blog post](https://nebelgrau77.github.io/posts/rust_driver/)~~
