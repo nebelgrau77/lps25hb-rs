@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - reading threshold for pressure interrupt generation
 - setting threshold for pressure interrupt generation
 - setting pressure offset value
+- added Raspberry Pi example
 
 ## [0.0.3] - 2021-08-16
 
