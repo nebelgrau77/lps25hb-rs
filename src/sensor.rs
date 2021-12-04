@@ -72,7 +72,8 @@ where
         self.interface
             .read(Registers::THS_P_L.addr() | Bitmasks::MULTIBYTE, &mut data)?;
         let ths: i16 = (data[1] as i16) << 8 | (data[0] as i16);
-        Ok(ths * 16)
+        // Ok(ths * 16) // this is wrong,
+        Ok(ths / 16) // this will return value in hPa
     }
 
     /// Set threshold value for pressure interrupt generation (VALUE IN hPA!)
@@ -81,11 +82,15 @@ where
         // The value is expressed as unsigned number: Interrupt threshold(hPA) = (THS_P)/16.
         let threshold = threshold * 16;
 
-        payload[0] = threshold & 0xff; // lower byte
-        payload[1] = threshold >> 8; // upper byte
+        payload[0] = (threshold & 0xff) as u8; // lower byte
+        payload[1] = (threshold >> 8) as u8; // upper byte
 
         self.interface
-            .write(Registers::THS_P_L.addr() | Bitmasks::MULTIBYTE, payload)?;
+            .write(Registers::THS_P_L.addr() | Bitmasks::MULTIBYTE, payload[0])?;
+        self.interface
+            .write(Registers::THS_P_H.addr() | Bitmasks::MULTIBYTE, payload[1])?;
+        
+        Ok(())
     }
 
     /// Set the pressure offset value (VALUE IN hPA!)
@@ -93,11 +98,15 @@ where
         let mut payload = [0u8; 2];
         let offset = offset * 16;
 
-        payload[0] = offset & 0xff; // lower byte
-        payload[1] = offset >> 8; // upper byte
+        payload[0] = (offset & 0xff) as u8; // lower byte
+        payload[1] = (offset >> 8) as u8; // upper byte
 
         self.interface
-            .write(Registers::RPDS_L.addr() | Bitmasks::MULTIBYTE, payload)?;
+            .write(Registers::RPDS_L.addr() | Bitmasks::MULTIBYTE, payload[0])?;
+        self.interface
+            .write(Registers::RPDS_H.addr() | Bitmasks::MULTIBYTE, payload[1])?;
+
+        Ok(())
     }
 
     /// Turn the sensor on (sensor is in power down by default)
