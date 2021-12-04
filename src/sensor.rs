@@ -1,32 +1,30 @@
-//! TO DO: 
+//! TO DO:
 //! - reference pressure reading
 //! - pressure offset reading (what is the pressure offset for?)
-//! 
-//! 
-
+//!
+//!
 
 use super::*;
 
 /*
 /// Pressure sensor settings. Use this struct to configure the sensor.
 #[derive(Debug)]
-pub struct SensorSettings {    
+pub struct SensorSettings {
     /// Output data rate & power mode selection
-    pub sample_rate: ODR,    
+    pub sample_rate: ODR,
     //pub auto_addr_inc: bool,
 
 }
 */
 
-impl<T, E> LPS25HB<T> 
+impl<T, E> LPS25HB<T>
 where
     T: Interface<Error = E>,
-{   
-
+{
     /// Read the device ID ("who am I")
     pub fn get_device_id(&mut self) -> Result<u8, T::Error> {
-    //pub fn get_device_id(&mut self) -> Result<u8, Error<E>> {
-        let mut data = [0u8;1];
+        //pub fn get_device_id(&mut self) -> Result<u8, Error<E>> {
+        let mut data = [0u8; 1];
         self.interface.read(Registers::WHO_AM_I.addr(), &mut data)?;
         let whoami = data[0];
         Ok(whoami)
@@ -34,8 +32,11 @@ where
 
     /// Raw sensor reading (3 bytes of pressure data and 2 bytes of temperature data)
     fn read_sensor_raw(&mut self) -> Result<(i32, i16), T::Error> {
-        let mut data = [0u8;5];
-        self.interface.read(Registers::PRESS_OUT_XL.addr() | Bitmasks::MULTIBYTE, &mut data)?;
+        let mut data = [0u8; 5];
+        self.interface.read(
+            Registers::PRESS_OUT_XL.addr() | Bitmasks::MULTIBYTE,
+            &mut data,
+        )?;
         let p: i32 = (data[2] as i32) << 16 | (data[1] as i32) << 8 | (data[0] as i32);
         let t: i16 = (data[4] as i16) << 8 | (data[3] as i16);
         Ok((p, t))
@@ -43,24 +44,24 @@ where
 
     /// Calculated pressure reading in hPa
     pub fn read_pressure(&mut self) -> Result<f32, T::Error> {
-        let (p,_t) = self.read_sensor_raw()?;        
+        let (p, _t) = self.read_sensor_raw()?;
         let pressure = (p as f32) / PRESS_SCALE; // no need to take care of negative values
-        Ok(pressure) 
+        Ok(pressure)
     }
 
-    /// Calculated temperaure reading in degrees Celsius 
+    /// Calculated temperaure reading in degrees Celsius
     pub fn read_temperature(&mut self) -> Result<f32, T::Error> {
-        let (_p,t) = self.read_sensor_raw()?;
+        let (_p, t) = self.read_sensor_raw()?;
         // negative values taken care of, as the raw value is a signed 16-bit
-        let temperature = (t as f32) / TEMP_SCALE + TEMP_OFFSET;    
+        let temperature = (t as f32) / TEMP_SCALE + TEMP_OFFSET;
         Ok(temperature)
     }
 
-
     /// Read pressure offset value, 16-bit data that can be used to implement One-Point Calibration (OPC) after soldering.
     pub fn read_pressure_offset(&mut self) -> Result<i16, T::Error> {
-        let mut data = [0u8;2];
-        self.interface.read(Registers::RPDS_L.addr() | Bitmasks::MULTIBYTE, &mut data)?;        
+        let mut data = [0u8; 2];
+        self.interface
+            .read(Registers::RPDS_L.addr() | Bitmasks::MULTIBYTE, &mut data)?;
         let o: i16 = (data[1] as i16) << 8 | (data[0] as i16);
         Ok(o)
     }
@@ -99,23 +100,18 @@ where
             .write(Registers::RPDS_L.addr() | Bitmasks::MULTIBYTE, payload)?;
     }
 
-
     /// Turn the sensor on (sensor is in power down by default)
     pub fn sensor_on(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            true => {
-                self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::PD)
-            }
-            false => {
-                self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::PD)
-            }
+            true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::PD),
+            false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::PD),
         }
     }
 
     /// Reboot. Refreshes the content of the internal registers stored in the Flash memory block.
-    /// At device power-up the content of the Flash memory block is transferred to the internal registers 
+    /// At device power-up the content of the Flash memory block is transferred to the internal registers
     /// related to the trimming functions to allow correct behavior of the device itself.
-    /// If for any reason the content of the trimming registers is modified, 
+    /// If for any reason the content of the trimming registers is modified,
     /// it is sufficient to use this bit to restore the correct values.
     pub fn reboot(&mut self) -> Result<(), T::Error> {
         self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::BOOT)
@@ -126,7 +122,6 @@ where
         self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::SWRESET)
     }
 
-    
     /// Has any interrupt event been generated? (self clearing)
     pub fn interrupt_active(&mut self) -> Result<bool, T::Error> {
         self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::IA)
@@ -161,14 +156,4 @@ where
     pub fn temperature_data_available(&mut self) -> Result<bool, T::Error> {
         self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::T_DA)
     }
-
-    
-
-
-
 }
-
-
-
-
-

@@ -1,40 +1,40 @@
 //! A platform agnostic driver to interface with LPS25HB pressure sensor module.
-//! 
+//!
 //! This driver allows you to:
 //! - read atmospheric pressure in hPa, see [`read_pressure()`]
 //! - read temperature in degrees Celsius, see [`read_temperature()`]
 //! - enable single-shot data acquisition, see [`enable_one_shot()`]
 //! - set data rate, see [`set_datarate()`]
-//! 
+//!
 //! [`read_pressure()`]: struct.LPS25HB.html#method.read_pressure
 //! [`read_temperature()`]: struct.LPS25HB.html#method.read_temperature
 //! [`enable_one_shot()`]: struct.LPS25HB.html#method.enable_one_shot
 //! [`set_datarate()`]: struct.LPS25HB.html#method.set_datarate
-//! 
+//!
 //! __NOTE__: This is an early version of the crate. Only I2C interface is supported at the moment.
 //!  
-//! 
+//!
 //! ### Datasheet: [LPS25HB](https://www.st.com/resource/en/datasheet/lps25hb.pdf)
-//! 
+//!
 //! ## Usage examples (see also examples folder)
-//! 
+//!
 //! Please find additional examples using hardware in this repository: [examples]
-//! 
+//!
 //! [examples]: https://github.com/nebelgrau77/lps25hb-rs/examples
-//! 
+//!
 //! ### Read pressure and temperature
-//! 
+//!
 //! ```rust
-//! 
+//!
 //! use lps25hb::interface::{I2cInterface, i2c::I2cAddress};
 //! use lps25hb::*;
-//! 
+//!
 //! let mut lps25 = LPS25HB.new(i2c_interface);
-//! 
+//!
 //! lps25hb.sensor_on(true).unwrap();
-//! 
+//!
 //! lps25.enable_one_shot().unwrap();
-//! 
+//!
 //! let pressure = lps25.read_pressure().unwrap();
 //! let temperature = lps25.read_temperature().unwrap();
 //! ```
@@ -58,7 +58,7 @@ use config::*;
 pub mod interface;
 use interface::Interface;
 
-/// Sensor's ID 
+/// Sensor's ID
 const WHOAMI: u8 = 0b10111101; // decimal value 189
 
 // https://www.st.com/resource/en/technical_note/dm00242307-how-to-interpret-pressure-and-temperature-readings-in-the-lps25hb-pressure-sensor-stmicroelectronics.pdf
@@ -70,20 +70,18 @@ const TEMP_OFFSET: f32 = 42.5;
 /// The output of the pressure sensor must be divided by 4096, see Table 3 of the datasheet.
 const PRESS_SCALE: f32 = 4096.0;
 
-
 /// Holds the driver instance with the selected interface
 pub struct LPS25HB<T> {
     interface: T,
 }
 
-impl<T, E> LPS25HB<T> 
+impl<T, E> LPS25HB<T>
 where
     T: Interface<Error = E>,
-{   
-    
+{
     /// Create a new instance of the LPS25HB driver.
     pub fn new(interface: T) -> Self {
-        LPS25HB {interface}
+        LPS25HB { interface }
     }
 
     /// Destroy driver instance, return interface instance.
@@ -91,14 +89,13 @@ where
         self.interface
     }
 
-    
     /*
-    /// Verifies communication with WHO_AM_I register    
-    /// 
+    /// Verifies communication with WHO_AM_I register
+    ///
     /// USE GET_DEVICE_ID FOR THIS
     pub fn sensor_is_reachable(&mut self) -> Result<bool, T::Error> {
         let mut bytes = [0u8; 1];
-        let (who_am_i, register) = (WHOAMI, Registers::WHO_AM_I.addr());        
+        let (who_am_i, register) = (WHOAMI, Registers::WHO_AM_I.addr());
         self.interface.read(register, &mut bytes)?;
         Ok(bytes[0] == who_am_i)
     }
@@ -110,38 +107,34 @@ where
         self.interface.read(address.addr(), &mut reg_data)?;
         Ok(reg_data[0])
     }
-            
+
     /// Clear selected bits using a bitmask
     fn clear_register_bit_flag(&mut self, address: Registers, bitmask: u8) -> Result<(), T::Error> {
         let mut reg_data = [0u8];
-        self.interface.read(address.addr(), &mut reg_data)?;        
+        self.interface.read(address.addr(), &mut reg_data)?;
         let payload: u8 = reg_data[0] & !bitmask;
-        self.interface.write(            
-            address.addr(),
-            payload,
-        )?;
+        self.interface.write(address.addr(), payload)?;
         Ok(())
-    }    
+    }
 
     /// Set selected bits using a bitmask
     fn set_register_bit_flag(&mut self, address: Registers, bitmask: u8) -> Result<(), T::Error> {
         let mut reg_data = [0u8];
         self.interface.read(address.addr(), &mut reg_data)?;
         let payload: u8 = reg_data[0] | bitmask;
-        self.interface.write(            
-            address.addr(),
-            payload,
-        )?;
+        self.interface.write(address.addr(), payload)?;
         Ok(())
     }
 
     /// Check if specific bits are set.
-    fn is_register_bit_flag_high(&mut self, address: Registers, bitmask: u8) -> Result<bool, T::Error> {
+    fn is_register_bit_flag_high(
+        &mut self,
+        address: Registers,
+        bitmask: u8,
+    ) -> Result<bool, T::Error> {
         let data = self.read_register(address)?;
         Ok((data & bitmask) != 0)
     }
-
-
 
     /*
 
@@ -151,9 +144,7 @@ where
     }
 
     */
-     
 }
-
 
 /// Output data rate and power mode selection (ODR). (Refer to Table 20)
 #[derive(Debug, Clone, Copy)]
@@ -167,7 +158,7 @@ pub enum ODR {
     /// 12.5 Hz
     _12_5Hz = 0b011,
     /// 25 Hz
-    _25Hz = 0b100,    
+    _25Hz = 0b100,
 }
 
 impl ODR {
@@ -182,7 +173,7 @@ pub enum SPI_Mode {
     /// 4-wire mode (default)
     _4wire,
     /// 3-wire mode
-    _3wire,    
+    _3wire,
 }
 
 /// INT_DRDY pin configuration. (Refer to Table 21)
@@ -196,7 +187,6 @@ pub enum INT_DRDY {
     P_low = 0b10,
     /// Pressure low or high
     P_low_or_high = 0b011,
-    
 }
 
 impl INT_DRDY {
@@ -222,7 +212,6 @@ pub enum FIFO_MODE {
     FIFO_Mean = 0b110,
     /// Bypass-to-FIFO mode
     Bypass_to_FIFO = 0b111,
-    
 }
 
 impl FIFO_MODE {
@@ -244,7 +233,6 @@ pub enum FIFO_MEAN {
     _16sample = 0b01111,
     /// 32-sample moving average
     _32sample = 0b11111,
-    
 }
 
 impl FIFO_MEAN {
@@ -264,7 +252,6 @@ pub enum TEMP_RES {
     _32 = 0b10,
     /// Nr. internal average 64
     _64 = 0b11,
-    
 }
 
 impl TEMP_RES {
@@ -284,7 +271,6 @@ pub enum PRESS_RES {
     _128 = 0b10,
     /// Nr. internal average 512
     _512 = 0b11,
-    
 }
 
 impl PRESS_RES {
@@ -292,5 +278,3 @@ impl PRESS_RES {
         self as u8 // no need to shift
     }
 }
-
-

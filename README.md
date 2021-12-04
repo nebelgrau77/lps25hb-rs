@@ -23,15 +23,13 @@ Basic functions work, see example. Almost all functions added, and should work f
 
 ## WORK IN PROGRESS:
 
-This library is work in progress. Not all features are implemented yet. Contributions are welcome.
+This library is work in progress. Not all features are implemented yet. Currently only the I2C interface is implemented. Contributions are welcome.
 
 ### TO DO:
 - [ ] add device ID check and power up in the `new()` function
 - [ ] add an example using FIFO and/or interrupt generation
 - [ ] add SPI interface and an example using it
-- [ ] add threshold setting
 - [ ] add more documentation (main block in the lib.rs)
-
 
 ~~[Some blog post](https://nebelgrau77.github.io/posts/rust_driver/)~~
 

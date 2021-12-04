@@ -1,62 +1,59 @@
-//! TO DO: 
-//! 
+//! TO DO:
+//!
 //! - put bitmasks in structs
-//! 
+//!
 //! Register mapping
 
 /// LPS25HB Registers
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy)]
 pub enum Registers {
-    
     /// Reference pressure register.
-    REF_P_XL        = 0x08,
+    REF_P_XL = 0x08,
     /// Reference pressure register.
-    REF_P_L         = 0x09,
+    REF_P_L = 0x09,
     /// Reference pressure register.
-    REF_P_H         = 0x0A,
+    REF_P_H = 0x0A,
     /// Who Am I (identifies the chip).
-    WHO_AM_I        = 0x0F,    
+    WHO_AM_I = 0x0F,
     /// Resolution configuration.
-    RES_CONF        = 0x10,
+    RES_CONF = 0x10,
     /// Control register 1.
-    CTRL_REG1       = 0x20,
+    CTRL_REG1 = 0x20,
     /// Control register 2.
-    CTRL_REG2       = 0x21,
+    CTRL_REG2 = 0x21,
     /// Control register 3.
-    CTRL_REG3       = 0x22,
+    CTRL_REG3 = 0x22,
     /// Control register 4.
-    CTRL_REG4       = 0x23,
+    CTRL_REG4 = 0x23,
     /// Interrupt control.
-    INTERRUPT_CFG   = 0x24,
+    INTERRUPT_CFG = 0x24,
     /// Interrupt configuration.
-    INT_SOURCE      = 0x25,
+    INT_SOURCE = 0x25,
     /// Status register.
-    STATUS_REG      = 0x27,
+    STATUS_REG = 0x27,
     /// Pressure output register.
-    PRESS_OUT_XL    = 0x28,
+    PRESS_OUT_XL = 0x28,
     /// Pressure output register.
-    PRESS_OUT_L     = 0x29,
+    PRESS_OUT_L = 0x29,
     /// Pressure output register.
-    PRESS_OUT_H     = 0x2A,
+    PRESS_OUT_H = 0x2A,
     /// Temperature output register.
-    TEMP_OUT_L      = 0x2B,
+    TEMP_OUT_L = 0x2B,
     /// Temperature output register.
-    TEMP_OUT_H      = 0x2C,
+    TEMP_OUT_H = 0x2C,
     /// FIFO configuration register.
-    FIFO_CTRL       = 0x2E,
+    FIFO_CTRL = 0x2E,
     /// FIFO status register.
-    FIFO_STATUS     = 0x2F,
+    FIFO_STATUS = 0x2F,
     /// Pressure threshold low.
-    THS_P_L         = 0x30,
+    THS_P_L = 0x30,
     /// Pressure threshold high.
-    THS_P_H         = 0x31,    
+    THS_P_H = 0x31,
     /// Pressure offset register.
-    RPDS_L          = 0x39,
+    RPDS_L = 0x39,
     /// Pressure offset register.
-    RPDS_H          = 0x3A,
-    
-    
+    RPDS_H = 0x3A,
 }
 
 impl Registers {
@@ -65,15 +62,11 @@ impl Registers {
     }
 }
 
-
-
-
 /// LPS25HB Bit masks
 
 pub struct Bitmasks;
 
 impl Bitmasks {
-
     // === RES_CONF (0x10) ===
     pub const AVGT_MASK: u8 = 0b0000_1100;
     pub const AVGP_MASK: u8 = 0b0000_0011;
@@ -140,8 +133,4 @@ impl Bitmasks {
     // === MULTIBYTE READ ===
     /// Must be OR'ed with the register address to enable multibyte data reading (temperature/pressure)
     pub const MULTIBYTE: u8 = 0b1000_0000;
-
-
 }
-
- 
