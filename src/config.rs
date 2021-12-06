@@ -60,14 +60,6 @@ where
         }
     }
 
-    /// Configuration of the interrupt generation (enabled/disable)
-    pub fn int_generation_enable(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
-            false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
-        }
-    }
-
     /// Resets the Autozero function. Self-cleared.
     pub fn autozero_reset(&mut self) -> Result<(), T::Error> {
         self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::RESET_AZ)
@@ -99,35 +91,28 @@ where
         }
     }
 
-    /// Interrupt request latching to INT_SOURCE
-    pub fn int_latch_enable(&mut self, flag: bool) -> Result<(), T::Error> {
+    /// Turn the sensor on (sensor is in power down by default)
+    pub fn sensor_on(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
-            true => self.set_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::LIR),
-            false => self.clear_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::LIR),
+            true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::PD),
+            false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::PD),
         }
     }
 
-    /// Enable interrupt on differential pressure low event
-    pub fn diff_press_low_enable(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::PL_E),
-            false => self.clear_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::PL_E),
-        }
+    /// Reboot. Refreshes the content of the internal registers stored in the Flash memory block.
+    /// At device power-up the content of the Flash memory block is transferred to the internal registers
+    /// related to the trimming functions to allow correct behavior of the device itself.
+    /// If for any reason the content of the trimming registers is modified,
+    /// it is sufficient to use this bit to restore the correct values.
+    pub fn reboot(&mut self) -> Result<(), T::Error> {
+        self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::BOOT)
     }
 
-    /// Enable interrupt on differential pressure high event
-    pub fn diff_press_high_enable(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::PH_E),
-            false => self.clear_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::PH_E),
-        }
+    /// Run software reset (resets the device to the power-on configuration, takes 4 usec)
+    pub fn software_reset(&mut self) -> Result<(), T::Error> {
+        self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::SWRESET)
     }
+    
 
-    /// Data-ready signal on INT_DRDY pin
-    pub fn data_signal_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::CTRL_REG4, Bitmasks::DRDY),
-            false => self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::DRDY),
-        }
-    }
+
 }

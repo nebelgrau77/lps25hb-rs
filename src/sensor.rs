@@ -89,7 +89,7 @@ where
             .write(Registers::THS_P_L.addr() | Bitmasks::MULTIBYTE, payload[0])?;
         self.interface
             .write(Registers::THS_P_H.addr() | Bitmasks::MULTIBYTE, payload[1])?;
-        
+
         Ok(())
     }
 
@@ -109,42 +109,7 @@ where
         Ok(())
     }
 
-    /// Turn the sensor on (sensor is in power down by default)
-    pub fn sensor_on(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::PD),
-            false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::PD),
-        }
-    }
-
-    /// Reboot. Refreshes the content of the internal registers stored in the Flash memory block.
-    /// At device power-up the content of the Flash memory block is transferred to the internal registers
-    /// related to the trimming functions to allow correct behavior of the device itself.
-    /// If for any reason the content of the trimming registers is modified,
-    /// it is sufficient to use this bit to restore the correct values.
-    pub fn reboot(&mut self) -> Result<(), T::Error> {
-        self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::BOOT)
-    }
-
-    /// Run software reset (resets the device to the power-on configuration, takes 4 usec)
-    pub fn software_reset(&mut self) -> Result<(), T::Error> {
-        self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::SWRESET)
-    }
-
-    /// Has any interrupt event been generated? (self clearing)
-    pub fn interrupt_active(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::IA)
-    }
-
-    /// Has low differential pressure event been generated? (self clearing)
-    pub fn low_pressure_event_occurred(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::PL)
-    }
-
-    /// Has high differential pressure event been generated? (self clearing)
-    pub fn high_pressure_event_occurred(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::PH)
-    }
+    
 
     /// Has new pressure data overwritten the previous one?
     pub fn pressure_data_overrun(&mut self) -> Result<bool, T::Error> {

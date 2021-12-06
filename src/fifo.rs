@@ -1,8 +1,7 @@
 //! Various functions related to FIFO
 //!
 //! TO DO:
-//! - watermark level selection
-//! - FIFO stored data level reading
+//! - watermark level selection (5 bit value) - check how it relates to MEAN settings!
 //!
 
 use super::*;
@@ -42,7 +41,7 @@ where
         self.interface.write(Registers::FIFO_CTRL.addr(), payload)?;
         Ok(())
     }
-
+    
     /// FIFO empty flag on INT_DRDY pin
     pub fn fifo_empty_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
@@ -95,4 +94,21 @@ where
 
         Ok(fifo_level)
     }
+
+     /// Stop on FIFO watermark (enable FIFO watermark use)
+     pub fn stop_on_fth(&mut self, flag: bool) -> Result<(), T::Error> {
+        match flag {
+            true => self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::STOP_ON_FTH),
+            false => self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::STOP_ON_FTH),
+        }
+    }
+
+    /// Enable decimating output pressure to 1Hz with FIFO Mean mode
+    pub fn fifo_decimate_enable(&mut self, flag: bool) -> Result<(), T::Error> {
+        match flag {
+            true => self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_MEAN_DEC),
+            false => self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_MEAN_DEC),
+        }
+    }
+
 }

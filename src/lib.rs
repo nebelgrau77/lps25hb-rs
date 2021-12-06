@@ -55,6 +55,9 @@ use fifo::*;
 pub mod config;
 use config::*;
 
+pub mod interrupt;
+use interrupt::*;
+
 pub mod interface;
 use interface::Interface;
 
@@ -176,25 +179,6 @@ pub enum SPI_Mode {
     _3wire,
 }
 
-/// INT_DRDY pin configuration. (Refer to Table 21)
-#[derive(Debug, Clone, Copy)]
-pub enum INT_DRDY {
-    /// Data signal (see CTRL_REG4)
-    DataSignal = 0b00,
-    /// Pressure high
-    P_high = 0b01,
-    /// Pressure low
-    P_low = 0b10,
-    /// Pressure low or high
-    P_low_or_high = 0b011,
-}
-
-impl INT_DRDY {
-    pub fn value(self) -> u8 {
-        self as u8 // no need to shift, bits 0:1
-    }
-}
-
 /// FIFO mode selection. (Refer to Table 22)
 #[derive(Debug, Clone, Copy)]
 pub enum FIFO_MODE {
@@ -277,4 +261,41 @@ impl PRESS_RES {
     pub fn value(self) -> u8 {
         self as u8 // no need to shift
     }
+}
+
+/// INT_DRDY pin configuration. (Refer to Table 21)
+#[derive(Debug, Clone, Copy)]
+pub enum INT_DRDY {
+    /// Data signal (see CTRL_REG4)
+    DataSignal = 0b00,
+    /// Pressure high
+    P_high = 0b01,
+    /// Pressure low
+    P_low = 0b10,
+    /// Pressure low or high
+    P_low_or_high = 0b011,
+}
+
+impl INT_DRDY {
+    pub fn value(self) -> u8 {
+        self as u8 // no need to shift, bits 0:1
+    }
+}
+
+/// Interrupt active setting for the INT_DRDY pin: active high (default) or active low
+#[derive(Debug, Clone, Copy)]
+pub enum INT_ACTIVE {
+    /// Active high
+    High,
+    /// Active low
+    Low,
+}
+
+/// Interrupt pad setting for INT_DRDY pin: push-pull (default) or open-drain.
+#[derive(Debug, Clone, Copy)]
+pub enum INT_PIN {
+    /// Push-pull
+    PushPull,
+    /// Open drain
+    OpenDrain,
 }
