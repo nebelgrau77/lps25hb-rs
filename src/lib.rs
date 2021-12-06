@@ -40,6 +40,8 @@
 //! ```
 //!
 
+// TO DO: move MULTIBYTE into the interface, as it is different between I2C and SPI
+
 #![no_std]
 //#![deny(warnings, missing_docs)]
 

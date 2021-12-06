@@ -41,7 +41,7 @@ where
         self.interface.write(Registers::FIFO_CTRL.addr(), payload)?;
         Ok(())
     }
-    
+
     /// FIFO empty flag on INT_DRDY pin
     pub fn fifo_empty_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
@@ -95,8 +95,8 @@ where
         Ok(fifo_level)
     }
 
-     /// Stop on FIFO watermark (enable FIFO watermark use)
-     pub fn stop_on_fth(&mut self, flag: bool) -> Result<(), T::Error> {
+    /// Stop on FIFO watermark (enable FIFO watermark use)
+    pub fn stop_on_fth(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
             true => self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::STOP_ON_FTH),
             false => self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::STOP_ON_FTH),
@@ -111,4 +111,22 @@ where
         }
     }
 
+    /*
+    /// Set the watermark level
+    pub fn set_watermark_level(&mut self, level: u8) -> Result<(), T::Error> {
+        let wtm: u8 = match level {
+            // if the input value exceeds the capacity, default to maximum
+            l if l < 33 => l,
+            _ => 32,
+        };
+        let mut reg_data = [0u8];
+        self.interface
+            .read(Registers::FIFO_CTRL.addr(), &mut reg_data)?;
+        let mut payload = reg_data[0];
+        payload &= !Bitmasks::WTM_MASK;
+        payload |= mode.value();
+        self.interface.write(Registers::FIFO_CTRL.addr(), payload)?;
+        Ok(())
+    }
+     */
 }
