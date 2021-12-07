@@ -46,14 +46,8 @@ impl Default for InterruptConfig {
 }
 
 impl InterruptConfig {
-    // what to do here? it should use the fields to set various registers
-    // using the already defined functions (that should be private)
-    // if LSM9DS1 crate can be an example, then 
-    // functions would be here, but instead of setting up single bits
-    // would return values to be written to registers instead?
-    // this could actually work, as there are three registers involved:
-    // so the functions could be:
-    fn ctrl_reg3(&self) -> u8 {
+    /// Returns values to be written to CTRL_REG3, CTRL_REG4 and INTERRUPT_CFG:
+    fn int_ctrl_reg3(&self) -> u8 {
         let mut data = 0u8;
         if self.active_high_or_low {
             data |= 1 << 7;
@@ -65,7 +59,7 @@ impl InterruptConfig {
         data |= self.data_signal_config.value(); 
         data
     }
-    fn ctrl_reg4(&self) -> u8 {
+    fn int_ctrl_reg4(&self) -> u8 {
         let mut data = 0u8;
         if self.enable_fifo_empty {
             data |= 1 << 3;
@@ -81,7 +75,7 @@ impl InterruptConfig {
         }
         data
     }
-    fn interrupt_cfg(&self) -> u8 {
+    fn int_interrupt_cfg(&self) -> u8 {
         let mut data = 0u8;    
         if self.enable_latch_interrupt {
             data |= 1 << 2;
@@ -110,18 +104,17 @@ where
         }
     }
 
-    /// Configuration of the interrupt generation (enabled/disable)
+    /// Enable interrupts and configure the interrupt pin
     pub fn enable_interrupts(&mut self, flag: bool, config: InterruptConfig) -> Result<(), T::Error> {
         match flag {
             true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
             false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
         };
         // MUST USE u8 VALUES OF THE Registers FIELDS
-        self.interface.write(Registers::CTRL_REG3.addr(), config.ctrl_reg3())?;
-        self.interface.write(Registers::CTRL_REG4.addr(), config.ctrl_reg4())?;
-        self.interface.write(Registers::INTERRUPT_CFG.addr(), config.interrupt_cfg())?;
+        self.interface.write(Registers::CTRL_REG3.addr(), config.int_ctrl_reg3())?;
+        self.interface.write(Registers::CTRL_REG4.addr(), config.int_ctrl_reg4())?;
+        self.interface.write(Registers::INTERRUPT_CFG.addr(), config.int_interrupt_cfg())?;
         Ok(())
-
     }
 
     /// Interrupt request latching to INT_SOURCE

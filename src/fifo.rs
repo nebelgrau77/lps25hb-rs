@@ -11,9 +11,71 @@
 // CTRL_REG2::FIFO_MEAN_DEC
 // FIFO_CTRL::F_MODE
 // FIFO_CTRL::WTM_POINT (complicated: has to use the specific values if in MEAN mode)
+// there should be both: a numeric level, and a specific setting for the mean mode
+// 
 
 
 use super::*;
+
+/// FIFO settings
+#[derive(Debug)]
+pub struct FIFOConfig {
+    /// Stop on FIFO watermark (enable FIFO watermark use)
+    enable_watermark: bool, // default disabled
+    /// Enable decimating output pressure to 1Hz with FIFO Mean mode
+    enable_decimating: bool, // default disabled
+    /// Select FIFO operation mode (see Table 22 for details)        
+    fifo_mode: FIFO_MODE, // default Bypass
+    /// Set the watermark level
+    watermark_level: u8, // default 0
+    /// Select sample size for FIFO Mean mode running average (see Table 23 for details)        
+    fifo_mean_config: FIFO_MEAN, // default 2-sample
+}
+
+impl Default for FIFOConfig {
+    fn default() -> Self {
+        FIFOConfig {    
+            enable_watermark: false, // disabled
+            enable_decimating: false, // disabled
+            fifo_mode: FIFO_MODE::Bypass, // Bypass mode
+            watermark_level: 1u8, // 0 does not make sense as a default value
+            fifo_mean_config: FIFO_MEAN::_2sample, // 2 samples
+        }
+    }
+}
+
+impl FIFOConfig {    
+    /// Returns values to be written to CTRL_REG2 and FIFO_CTRL:
+    fn f_ctrl_reg2(&self) -> u8 {
+        let mut data = 0u8;
+
+        // THIS RESULT MUST THEN BE COMBINED WITH THE OTHER BIT SETTINGS
+
+        if self.enable_watermark {
+            data |= 1 << 5;
+        }
+        if self.enable_decimating {
+            data |= 1 << 4;
+        }        
+    }
+    fn f_fifo_ctrl(&self) -> u8 {
+        let mut data = 0u8;
+
+        data |= self.fifo_mode.value();
+
+        let wtm = match self.fifo_mode {
+            FIFO_MODE::FIFO_Mean => self.fifo_mean_config.value(),
+            _ => self.watermark_level,
+        };
+
+        data |= wtm;
+
+        data
+    }
+    
+}
+
+
 
 impl<T, E> LPS25HB<T>
 where
@@ -25,6 +87,19 @@ where
             true => self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
             false => self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
         }
+    }
+
+     /// Enable and configure FIFO
+     pub fn enable_fifo(&mut self, flag: bool, config: FIFOConfig) -> Result<(), T::Error> {
+        match flag {
+            true => self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
+            false => self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
+        };
+              
+        self.interface.write(Registers::CTRL_REG2.addr(), config.f_ctrl_reg2())?;
+        self.interface.write(Registers::FIFO_CTRL.addr(), config.f_fifo_ctrl())?;
+              
+        Ok(())
     }
 
     /// Select FIFO operation mode (see Table 22 for details)        
