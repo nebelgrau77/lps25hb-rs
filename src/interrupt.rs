@@ -91,7 +91,6 @@ impl InterruptConfig {
 }
 
 
-
 impl<T, E> LPS25HB<T>
 where
     T: Interface<Error = E>,
@@ -109,8 +108,8 @@ where
         match flag {
             true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
             false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
-        };
-        // MUST USE u8 VALUES OF THE Registers FIELDS
+        }?;
+        
         self.interface.write(Registers::CTRL_REG3.addr(), config.int_ctrl_reg3())?;
         self.interface.write(Registers::CTRL_REG4.addr(), config.int_ctrl_reg4())?;
         self.interface.write(Registers::INTERRUPT_CFG.addr(), config.int_interrupt_cfg())?;

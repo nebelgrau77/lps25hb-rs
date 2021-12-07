@@ -21,15 +21,15 @@ use super::*;
 #[derive(Debug)]
 pub struct FIFOConfig {
     /// Stop on FIFO watermark (enable FIFO watermark use)
-    enable_watermark: bool, // default disabled
+    pub enable_watermark: bool, // default disabled
     /// Enable decimating output pressure to 1Hz with FIFO Mean mode
-    enable_decimating: bool, // default disabled
+    pub enable_decimating: bool, // default disabled
     /// Select FIFO operation mode (see Table 22 for details)        
-    fifo_mode: FIFO_MODE, // default Bypass
+    pub fifo_mode: FIFO_MODE, // default Bypass
     /// Set the watermark level
-    watermark_level: u8, // default 0
+    pub watermark_level: u8, // default 0
     /// Select sample size for FIFO Mean mode running average (see Table 23 for details)        
-    fifo_mean_config: FIFO_MEAN, // default 2-sample
+    pub fifo_mean_config: FIFO_MEAN, // default 2-sample
 }
 
 impl Default for FIFOConfig {
@@ -57,6 +57,7 @@ impl FIFOConfig {
         if self.enable_decimating {
             data |= 1 << 4;
         }        
+        data
     }
     fn f_fifo_ctrl(&self) -> u8 {
         let mut data = 0u8;
@@ -94,9 +95,12 @@ where
         match flag {
             true => self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
             false => self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
-        };
-              
-        self.interface.write(Registers::CTRL_REG2.addr(), config.f_ctrl_reg2())?;
+        }?;
+        
+        let mut reg_data = [0u8];
+        self.interface.read(Registers::CTRL_REG2.addr(), &mut reg_data)?;
+        reg_data[0] |= config.f_ctrl_reg2();        
+        self.interface.write(Registers::CTRL_REG2.addr(), reg_data[0])?; 
         self.interface.write(Registers::FIFO_CTRL.addr(), config.f_fifo_ctrl())?;
               
         Ok(())

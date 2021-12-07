@@ -24,6 +24,8 @@ use lps25hb::interface::{I2cInterface,
 
 use lps25hb::sensor::*;
 use lps25hb::register::*;
+use lps25hb::interrupt::*;
+use lps25hb::fifo::*;
 
 #[entry]
 fn main() -> ! {
@@ -82,10 +84,28 @@ fn main() -> ! {
     lps25hb.sensor_on(true).unwrap();
     
     // enable Block Data Update
-    lps25hb.bdu_enable(true).unwrap();
+    lps25hb.bdu_enable(true).unwrap(); 
 
-    // set data rate to 7Hz
+    // set data rate to 1Hz
     lps25hb.set_datarate(ODR::_1Hz).unwrap();
+
+
+    // configure the interrupt pin with default settings, enable data ready signal on the pin
+
+    let int_conf = InterruptConfig{enable_data_ready: true,
+                                    ..Default::default()};
+    
+    lps25hb.enable_interrupts(true, int_conf).unwrap();
+
+    // configure the FIFO in Mean mode, with 8 samples taken for the mean
+
+    let fifo_conf = FIFOConfig{fifo_mode: FIFO_MODE::FIFO_Mean,
+                                fifo_mean_config: FIFO_MEAN::_8sample,
+                                ..Default::default()};
+
+    lps25hb.enable_fifo(true, fifo_conf).unwrap();
+
+    // THIS SHOULD GENERATE AN INTERRUPT AFTER 8 SECONDS (8 SAMPLES FOR THE MEAN, DATA READY INTERRUPT)
 
     loop {
             
