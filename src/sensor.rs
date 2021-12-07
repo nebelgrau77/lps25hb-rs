@@ -2,7 +2,10 @@
 //! - reference pressure reading
 //! - pressure offset reading (what is the pressure offset for?)
 //!
-//!
+//! TO DO: the STATUS_REG could be read to a struct, with a single function
+//! the struct would have four fields: 
+//! pressure_overrun, temperature_overrun, 
+//! pressure_data_available, temperature_data_available
 
 use super::*;
 

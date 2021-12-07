@@ -1,5 +1,9 @@
 //! Various functions related to FIFO
 //!
+//! TO DO: the FIFO_STATUS could be read to a struct, with a single function
+//! the struct would have four fields: 
+//! threshold_status, overrun_status, empty_status (all of them bools)
+//! and stored_data_level (u8)
 
 use super::*;
 
@@ -81,6 +85,8 @@ where
     }
 
     // --- THE FOLLOWING SECTION COULD BE REMOVED --- 
+
+    /*
 
     /// FIFO enable/disable
     pub fn fifo_enable(&mut self, flag: bool) -> Result<(), T::Error> {
@@ -172,6 +178,8 @@ where
             false => self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_OVR),
         }
     }
+    
+    */
 
     // --- END OF THE SECTION THAT COULD BE REMOVED --- 
 

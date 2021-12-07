@@ -1,5 +1,8 @@
 //! Various functions related to interrupts
 //!
+//! TO DO: the INT_SOURCE could be read to a struct, with a single function
+//! the struct would have three fields: 
+//! interrupt_active, low_pressure_event and high_pressure_event, all of them bools
 
 use super::*;
 
@@ -116,6 +119,8 @@ where
 
     // --- THE FOLLOWING SECTION COULD BE REMOVED --- 
 
+    /*
+
     /// Configuration of the interrupt generation (enabled/disable)
     pub fn int_generation_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
@@ -156,6 +161,16 @@ where
         }
     }
 
+    /// Interrupt active high/low (default active high)
+    pub fn interrupt_pin_active(&mut self, setting: INT_ACTIVE) -> Result<(), T::Error> {
+        match setting {
+            INT_ACTIVE::High => {
+                self.clear_register_bit_flag(Registers::CTRL_REG3, Bitmasks::INT_H_L)
+            }
+            INT_ACTIVE::Low => self.set_register_bit_flag(Registers::CTRL_REG3, Bitmasks::INT_H_L),
+        }
+    }
+
     /// Interrupt pin configuration: push-pull (default) or open drain
     pub fn interrupt_pin_config(&mut self, setting: INT_PIN) -> Result<(), T::Error> {
         match setting {
@@ -178,6 +193,8 @@ where
         Ok(())
     }
 
+    */
+
     // --- END OF THE SECTION THAT COULD BE REMOVED --- 
 
     /// Has any interrupt event been generated? (self clearing)
@@ -194,14 +211,5 @@ where
     pub fn high_pressure_event_occurred(&mut self) -> Result<bool, T::Error> {
         self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::PH)
     }
-
-    /// Interrupt active high/low (default active high)
-    pub fn interrupt_pin_active(&mut self, setting: INT_ACTIVE) -> Result<(), T::Error> {
-        match setting {
-            INT_ACTIVE::High => {
-                self.clear_register_bit_flag(Registers::CTRL_REG3, Bitmasks::INT_H_L)
-            }
-            INT_ACTIVE::Low => self.set_register_bit_flag(Registers::CTRL_REG3, Bitmasks::INT_H_L),
-        }
-    }
+    
 }
