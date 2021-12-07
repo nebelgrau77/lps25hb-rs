@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- interrupt configuration struct
+- enable_interrupts function that enables and configures the interrupt pin 
+
 ## [0.0.4] - 2021-12-04
 
 ### Added

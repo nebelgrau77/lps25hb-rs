@@ -61,7 +61,8 @@ impl InterruptConfig {
         if self.pushpull_or_opendrain {
             data |= 1 << 6;
         }
-        data |= self.data_signal_config;
+        // MUST USE THE ACTUAL u8 VALUE HERE
+        data |= self.data_signal_config.value(); 
         data
     }
     fn ctrl_reg4(&self) -> u8 {
@@ -114,10 +115,11 @@ where
         match flag {
             true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
             false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
-        }
-        self.interface.write(Registers::CTRL_REG3, config.ctrl_reg3())?;
-        self.interface.write(Registers::CTRL_REG4, config.ctrl_reg4())?;
-        self.interface.write(Registers::INTERRUPT_CFG, config.interrupt_cfg())?;
+        };
+        // MUST USE u8 VALUES OF THE Registers FIELDS
+        self.interface.write(Registers::CTRL_REG3.addr(), config.ctrl_reg3())?;
+        self.interface.write(Registers::CTRL_REG4.addr(), config.ctrl_reg4())?;
+        self.interface.write(Registers::INTERRUPT_CFG.addr(), config.interrupt_cfg())?;
         Ok(())
 
     }

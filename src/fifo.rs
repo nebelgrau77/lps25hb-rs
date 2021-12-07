@@ -4,6 +4,15 @@
 //! - watermark level selection (5 bit value) - check how it relates to MEAN settings!
 //!
 
+// TO DO (IF POSSIBLE):
+// configuration struct similar to the one for the interrupts
+// using:
+// CTRL_REG2::STOP_ON_FTH
+// CTRL_REG2::FIFO_MEAN_DEC
+// FIFO_CTRL::F_MODE
+// FIFO_CTRL::WTM_POINT (complicated: has to use the specific values if in MEAN mode)
+
+
 use super::*;
 
 impl<T, E> LPS25HB<T>
