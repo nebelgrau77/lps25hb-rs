@@ -108,9 +108,7 @@ where
 
         Ok(())
     }
-
-    
-
+  
     /// Has new pressure data overwritten the previous one?
     pub fn pressure_data_overrun(&mut self) -> Result<bool, T::Error> {
         self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::P_OR)

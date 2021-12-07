@@ -23,24 +23,24 @@ pub struct InterruptConfig {
     /// enable latching interrupt request to INT_SOURCE register
     pub enable_latch_interrupt: bool,
     /// enable low pressure event on interrupt pin
-    pub enable_low_event: bool, 
+    pub enable_low_event: bool,
     /// enable hihg pressure event on interrupt pin
-    pub enable_high_event: bool, 
+    pub enable_high_event: bool,
 }
 
 impl Default for InterruptConfig {
     fn default() -> Self {
         InterruptConfig {
-            active_high_or_low: false, // active high (CTRL_REG3)
-            pushpull_or_opendrain: false, // push-pull (CTRL_REG3)
+            active_high_or_low: false,                // active high (CTRL_REG3)
+            pushpull_or_opendrain: false,             // push-pull (CTRL_REG3)
             data_signal_config: INT_DRDY::DataSignal, // data signal on INT_DRDY pin (CTRL_REG3)
-            enable_fifo_empty: false, // disabled (CTRL_REG4)
-            enable_fifo_fth: false, // disabled (CTRL_REG4)
-            enable_fifo_overrun: false, // disabled (CTRL_REG4)                       
-            enable_data_ready: false, // disabled (CTRL_REG4)
+            enable_fifo_empty: false,                 // disabled (CTRL_REG4)
+            enable_fifo_fth: false,                   // disabled (CTRL_REG4)
+            enable_fifo_overrun: false,               // disabled (CTRL_REG4)
+            enable_data_ready: false,                 // disabled (CTRL_REG4)
             enable_latch_interrupt: false, // inferrupt request not latched (INTERRUPT_CFG)
             enable_low_event: false, // disable interrupt request on low pressure event (INTERRUPT_CFG)
-            enable_high_event: false, // disable interrupt request on low pressure event (INTERRUPT_CFG)            
+            enable_high_event: false, // disable interrupt request on low pressure event (INTERRUPT_CFG)
         }
     }
 }
@@ -56,7 +56,7 @@ impl InterruptConfig {
             data |= 1 << 6;
         }
         // MUST USE THE ACTUAL u8 VALUE HERE
-        data |= self.data_signal_config.value(); 
+        data |= self.data_signal_config.value();
         data
     }
     fn int_ctrl_reg4(&self) -> u8 {
@@ -76,7 +76,7 @@ impl InterruptConfig {
         data
     }
     fn int_interrupt_cfg(&self) -> u8 {
-        let mut data = 0u8;    
+        let mut data = 0u8;
         if self.enable_latch_interrupt {
             data |= 1 << 2;
         }
@@ -90,30 +90,38 @@ impl InterruptConfig {
     }
 }
 
-
 impl<T, E> LPS25HB<T>
 where
     T: Interface<Error = E>,
 {
+    /// Enable interrupts and configure the interrupt pin
+    pub fn enable_interrupts(
+        &mut self,
+        flag: bool,
+        config: InterruptConfig,
+    ) -> Result<(), T::Error> {
+        match flag {
+            true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
+            false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
+        }?;
+
+        self.interface
+            .write(Registers::CTRL_REG3.addr(), config.int_ctrl_reg3())?;
+        self.interface
+            .write(Registers::CTRL_REG4.addr(), config.int_ctrl_reg4())?;
+        self.interface
+            .write(Registers::INTERRUPT_CFG.addr(), config.int_interrupt_cfg())?;
+        Ok(())
+    }
+
+    // --- THE FOLLOWING SECTION COULD BE REMOVED --- 
+
     /// Configuration of the interrupt generation (enabled/disable)
     pub fn int_generation_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
             true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
             false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
         }
-    }
-
-    /// Enable interrupts and configure the interrupt pin
-    pub fn enable_interrupts(&mut self, flag: bool, config: InterruptConfig) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
-            false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
-        }?;
-        
-        self.interface.write(Registers::CTRL_REG3.addr(), config.int_ctrl_reg3())?;
-        self.interface.write(Registers::CTRL_REG4.addr(), config.int_ctrl_reg4())?;
-        self.interface.write(Registers::INTERRUPT_CFG.addr(), config.int_interrupt_cfg())?;
-        Ok(())
     }
 
     /// Interrupt request latching to INT_SOURCE
@@ -148,6 +156,30 @@ where
         }
     }
 
+    /// Interrupt pin configuration: push-pull (default) or open drain
+    pub fn interrupt_pin_config(&mut self, setting: INT_PIN) -> Result<(), T::Error> {
+        match setting {
+            INT_PIN::PushPull => {
+                self.clear_register_bit_flag(Registers::CTRL_REG3, Bitmasks::PP_OD)
+            }
+            INT_PIN::OpenDrain => self.set_register_bit_flag(Registers::CTRL_REG3, Bitmasks::PP_OD),
+        }
+    }
+
+    /// Configure INT_DRDY pin
+    pub fn int_drdy_config(&mut self, config: INT_DRDY) -> Result<(), T::Error> {
+        let mut reg_data = [0u8];
+        self.interface
+            .read(Registers::CTRL_REG3.addr(), &mut reg_data)?;
+        let mut payload = reg_data[0];
+        payload &= !Bitmasks::INT_S_MASK;
+        payload |= config.value();
+        self.interface.write(Registers::CTRL_REG3.addr(), payload)?;
+        Ok(())
+    }
+
+    // --- END OF THE SECTION THAT COULD BE REMOVED --- 
+
     /// Has any interrupt event been generated? (self clearing)
     pub fn interrupt_active(&mut self) -> Result<bool, T::Error> {
         self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::IA)
@@ -171,27 +203,5 @@ where
             }
             INT_ACTIVE::Low => self.set_register_bit_flag(Registers::CTRL_REG3, Bitmasks::INT_H_L),
         }
-    }
-
-    /// Interrupt pin configuration: push-pull (default) or open drain
-    pub fn interrupt_pin_config(&mut self, setting: INT_PIN) -> Result<(), T::Error> {
-        match setting {
-            INT_PIN::PushPull => {
-                self.clear_register_bit_flag(Registers::CTRL_REG3, Bitmasks::PP_OD)
-            }
-            INT_PIN::OpenDrain => self.set_register_bit_flag(Registers::CTRL_REG3, Bitmasks::PP_OD),
-        }
-    }
-
-    /// Configure INT_DRDY pin
-    pub fn int_drdy_config(&mut self, config: INT_DRDY) -> Result<(), T::Error> {
-        let mut reg_data = [0u8];
-        self.interface
-            .read(Registers::CTRL_REG3.addr(), &mut reg_data)?;
-        let mut payload = reg_data[0];
-        payload &= !Bitmasks::INT_S_MASK;
-        payload |= config.value();
-        self.interface.write(Registers::CTRL_REG3.addr(), payload)?;
-        Ok(())
     }
 }

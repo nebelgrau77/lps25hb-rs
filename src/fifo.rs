@@ -1,19 +1,5 @@
 //! Various functions related to FIFO
 //!
-//! TO DO:
-//! - watermark level selection (5 bit value) - check how it relates to MEAN settings!
-//!
-
-// TO DO (IF POSSIBLE):
-// configuration struct similar to the one for the interrupts
-// using:
-// CTRL_REG2::STOP_ON_FTH
-// CTRL_REG2::FIFO_MEAN_DEC
-// FIFO_CTRL::F_MODE
-// FIFO_CTRL::WTM_POINT (complicated: has to use the specific values if in MEAN mode)
-// there should be both: a numeric level, and a specific setting for the mean mode
-// 
-
 
 use super::*;
 
@@ -34,29 +20,27 @@ pub struct FIFOConfig {
 
 impl Default for FIFOConfig {
     fn default() -> Self {
-        FIFOConfig {    
-            enable_watermark: false, // disabled
-            enable_decimating: false, // disabled
-            fifo_mode: FIFO_MODE::Bypass, // Bypass mode
-            watermark_level: 1u8, // 0 does not make sense as a default value
+        FIFOConfig {
+            enable_watermark: false,               // disabled
+            enable_decimating: false,              // disabled
+            fifo_mode: FIFO_MODE::Bypass,          // Bypass mode
+            watermark_level: 1u8,                  // 0 does not make sense as a default value
             fifo_mean_config: FIFO_MEAN::_2sample, // 2 samples
         }
     }
 }
 
-impl FIFOConfig {    
+impl FIFOConfig {
     /// Returns values to be written to CTRL_REG2 and FIFO_CTRL:
     fn f_ctrl_reg2(&self) -> u8 {
         let mut data = 0u8;
-
         // THIS RESULT MUST THEN BE COMBINED WITH THE OTHER BIT SETTINGS
-
         if self.enable_watermark {
             data |= 1 << 5;
         }
         if self.enable_decimating {
             data |= 1 << 4;
-        }        
+        }
         data
     }
     fn f_fifo_ctrl(&self) -> u8 {
@@ -68,42 +52,42 @@ impl FIFOConfig {
             FIFO_MODE::FIFO_Mean => self.fifo_mean_config.value(),
             _ => self.watermark_level,
         };
-
         data |= wtm;
-
         data
     }
-    
 }
-
-
 
 impl<T, E> LPS25HB<T>
 where
     T: Interface<Error = E>,
 {
+    /// Enable and configure FIFO
+    pub fn enable_fifo(&mut self, flag: bool, config: FIFOConfig) -> Result<(), T::Error> {
+        match flag {
+            true => self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
+            false => self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
+        }?;
+
+        let mut reg_data = [0u8];
+        self.interface
+            .read(Registers::CTRL_REG2.addr(), &mut reg_data)?;
+        reg_data[0] |= config.f_ctrl_reg2();
+        self.interface
+            .write(Registers::CTRL_REG2.addr(), reg_data[0])?;
+        self.interface
+            .write(Registers::FIFO_CTRL.addr(), config.f_fifo_ctrl())?;
+
+        Ok(())
+    }
+
+    // --- THE FOLLOWING SECTION COULD BE REMOVED --- 
+
     /// FIFO enable/disable
     pub fn fifo_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
             true => self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
             false => self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
         }
-    }
-
-     /// Enable and configure FIFO
-     pub fn enable_fifo(&mut self, flag: bool, config: FIFOConfig) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
-            false => self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
-        }?;
-        
-        let mut reg_data = [0u8];
-        self.interface.read(Registers::CTRL_REG2.addr(), &mut reg_data)?;
-        reg_data[0] |= config.f_ctrl_reg2();        
-        self.interface.write(Registers::CTRL_REG2.addr(), reg_data[0])?; 
-        self.interface.write(Registers::FIFO_CTRL.addr(), config.f_fifo_ctrl())?;
-              
-        Ok(())
     }
 
     /// Select FIFO operation mode (see Table 22 for details)        
@@ -128,59 +112,6 @@ where
         payload |= sample.value();
         self.interface.write(Registers::FIFO_CTRL.addr(), payload)?;
         Ok(())
-    }
-
-    /// FIFO empty flag on INT_DRDY pin
-    pub fn fifo_empty_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_EMPTY),
-            false => self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_EMPTY),
-        }
-    }
-
-    /// FIFO filled up to threshold (watermark) level on INT_DRDY pin
-    pub fn fifo_filled_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_FTH),
-            false => self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_FTH),
-        }
-    }
-
-    /// FIFO overrun interrupt on INT_DRDY pin
-    pub fn fifo_overrun_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_OVR),
-            false => self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_OVR),
-        }
-    }
-
-    /// Is FIFO filling equal or higher than the threshold?
-    pub fn fifo_threshold_status(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::FTH_FIFO)
-    }
-
-    /// Is FIFO full and at least one sample has been overwritten?
-    pub fn fifo_overrun_status(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::OVR)
-    }
-
-    /// Is FIFO empty?
-    pub fn fifo_empty_status(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::EMPTY_FIFO)
-    }
-
-    /// Read FIFO stored data level
-    pub fn read_fifo_level(&mut self) -> Result<u8, T::Error> {
-        let mut reg_data = [0u8];
-        self.interface
-            .read(Registers::FIFO_STATUS.addr(), &mut reg_data)?;
-
-        let fifo_level: u8 = match self.fifo_empty_status()? {
-            true => 0,
-            false => (reg_data[0] & Bitmasks::FSS_MASK) + 1,
-        };
-
-        Ok(fifo_level)
     }
 
     /// Stop on FIFO watermark (enable FIFO watermark use)
@@ -217,4 +148,59 @@ where
         Ok(())
     }
      */
+
+    /// FIFO empty flag on INT_DRDY pin
+    pub fn fifo_empty_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
+        match flag {
+            true => self.set_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_EMPTY),
+            false => self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_EMPTY),
+        }
+    }
+
+    /// FIFO filled up to threshold (watermark) level on INT_DRDY pin
+    pub fn fifo_filled_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
+        match flag {
+            true => self.set_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_FTH),
+            false => self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_FTH),
+        }
+    }
+
+    /// FIFO overrun interrupt on INT_DRDY pin
+    pub fn fifo_overrun_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
+        match flag {
+            true => self.set_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_OVR),
+            false => self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_OVR),
+        }
+    }
+
+    // --- END OF THE SECTION THAT COULD BE REMOVED --- 
+
+    /// Is FIFO filling equal or higher than the threshold?
+    pub fn fifo_threshold_status(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::FTH_FIFO)
+    }
+
+    /// Is FIFO full and at least one sample has been overwritten?
+    pub fn fifo_overrun_status(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::OVR)
+    }
+
+    /// Is FIFO empty?
+    pub fn fifo_empty_status(&mut self) -> Result<bool, T::Error> {
+        self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::EMPTY_FIFO)
+    }
+
+    /// Read FIFO stored data level
+    pub fn read_fifo_level(&mut self) -> Result<u8, T::Error> {
+        let mut reg_data = [0u8];
+        self.interface
+            .read(Registers::FIFO_STATUS.addr(), &mut reg_data)?;
+
+        let fifo_level: u8 = match self.fifo_empty_status()? {
+            true => 0,
+            false => (reg_data[0] & Bitmasks::FSS_MASK) + 1,
+        };
+
+        Ok(fifo_level)
+    }
 }
