@@ -3,6 +3,100 @@
 
 use super::*;
 
+/// Interrupt pin settings
+#[derive(Debug)]
+pub struct InterruptConfig {
+    /// configure interrupt pin as active high or active low
+    pub active_high_or_low: bool,
+    /// configure interrupt pin as  push-pull or open drain
+    pub pushpull_or_opendrain: bool,
+    /// configure data signal on the interrupt pin
+    pub data_signal_config: INT_DRDY,
+    /// enable FIFO empty flag on interrupt pin
+    pub enable_fifo_empty: bool,
+    /// enable FIFO watermark flag on interrupt pin
+    pub enable_fifo_fth: bool,
+    /// enable FIFO overrun flag on interrupt pin
+    pub enable_fifo_overrun: bool,
+    /// enable data ready signal on interrupt pin
+    pub enable_data_ready: bool,
+    /// enable latching interrupt request to INT_SOURCE register
+    pub enable_latch_interrupt: bool,
+    /// enable low pressure event on interrupt pin
+    pub enable_low_event: bool, 
+    /// enable hihg pressure event on interrupt pin
+    pub enable_high_event: bool, 
+}
+
+impl Default for InterruptConfig {
+    fn default() -> Self {
+        InterruptConfig {
+            active_high_or_low: false, // active high (CTRL_REG3)
+            pushpull_or_opendrain: false, // push-pull (CTRL_REG3)
+            data_signal_config: INT_DRDY::DataSignal, // data signal on INT_DRDY pin (CTRL_REG3)
+            enable_fifo_empty: false, // disabled (CTRL_REG4)
+            enable_fifo_fth: false, // disabled (CTRL_REG4)
+            enable_fifo_overrun: false, // disabled (CTRL_REG4)                       
+            enable_data_ready: false, // disabled (CTRL_REG4)
+            enable_latch_interrupt: false, // inferrupt request not latched (INTERRUPT_CFG)
+            enable_low_event: false, // disable interrupt request on low pressure event (INTERRUPT_CFG)
+            enable_high_event: false, // disable interrupt request on low pressure event (INTERRUPT_CFG)            
+        }
+    }
+}
+
+impl InterruptConfig {
+    // what to do here? it should use the fields to set various registers
+    // using the already defined functions (that should be private)
+    // if LSM9DS1 crate can be an example, then 
+    // functions would be here, but instead of setting up single bits
+    // would return values to be written to registers instead?
+    // this could actually work, as there are three registers involved:
+    // so the functions could be:
+    fn ctrl_reg3(&self) -> u8 {
+        let mut data = 0u8;
+        if self.active_high_or_low {
+            data |= 1 << 7;
+        }
+        if self.pushpull_or_opendrain {
+            data |= 1 << 6;
+        }
+        data |= self.data_signal_config;
+        data
+    }
+    fn ctrl_reg4(&self) -> u8 {
+        let mut data = 0u8;
+        if self.enable_fifo_empty {
+            data |= 1 << 3;
+        }
+        if self.enable_fifo_fth {
+            data |= 1 << 2;
+        }
+        if self.enable_fifo_overrun {
+            data |= 1 << 1;
+        }
+        if self.enable_data_ready {
+            data |= 1;
+        }
+        data
+    }
+    fn interrupt_cfg(&self) -> u8 {
+        let mut data = 0u8;    
+        if self.enable_latch_interrupt {
+            data |= 1 << 2;
+        }
+        if self.enable_low_event {
+            data |= 1 << 1;
+        }
+        if self.enable_high_event {
+            data |= 1;
+        }
+        data
+    }
+}
+
+
+
 impl<T, E> LPS25HB<T>
 where
     T: Interface<Error = E>,
@@ -13,6 +107,19 @@ where
             true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
             false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
         }
+    }
+
+    /// Configuration of the interrupt generation (enabled/disable)
+    pub fn enable_interrupts(&mut self, flag: bool, config: InterruptConfig) -> Result<(), T::Error> {
+        match flag {
+            true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
+            false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
+        }
+        self.interface.write(Registers::CTRL_REG3, config.ctrl_reg3())?;
+        self.interface.write(Registers::CTRL_REG4, config.ctrl_reg4())?;
+        self.interface.write(Registers::INTERRUPT_CFG, config.interrupt_cfg())?;
+        Ok(())
+
     }
 
     /// Interrupt request latching to INT_SOURCE
