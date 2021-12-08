@@ -1,8 +1,5 @@
 //! Various functions related to configuration
 //!
-//! TO DO:
-//! - set threshold value for pressure events generation (THS)
-//! - replace the Control:: with bool
 
 use super::*;
 
@@ -46,23 +43,22 @@ where
         Ok(())
     }
 
-    /// Enable single shot data acquisition (self cleared by hardware)
+    // --- THIS FUNCTION CAN BE REMOVED
+
+    /*
+    /// Enable single shot data acquisition (self cleared by hardware).
     pub fn enable_one_shot(&mut self) -> Result<(), T::Error> {
+        // self.set_datarate(ODR::OneShot)?; // make sure that OneShot mode is enabled
         self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::ONE_SHOT)?;
         Ok(())
     }
-
+     */
     /// Enable or disable block data update
     pub fn bdu_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {
             true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::BDU),
             false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::BDU),
         }
-    }
-
-    /// Resets the Autozero function. Self-cleared.
-    pub fn autozero_reset(&mut self) -> Result<(), T::Error> {
-        self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::RESET_AZ)
     }
 
     /// AUTOZERO: when set to ‘1’, the actual pressure output value is copied in
@@ -73,6 +69,11 @@ where
             true => self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::AUTOZERO),
             false => self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::AUTOZERO),
         }
+    }
+
+    /// Resets the Autozero function. Self-cleared.
+    pub fn autozero_reset(&mut self) -> Result<(), T::Error> {
+        self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::RESET_AZ)
     }
 
     /// Disables I2C interface (default 0, I2C enabled)
@@ -112,7 +113,4 @@ where
     pub fn software_reset(&mut self) -> Result<(), T::Error> {
         self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::SWRESET)
     }
-    
-
-
 }

@@ -93,6 +93,15 @@ impl InterruptConfig {
     }
 }
 
+#[derive(Debug)]
+/// Contents of the INT_SOURCE register (interrupt active and differential pressure events flags)
+pub struct IntSource {
+    pub interrupt_active: bool,
+    pub diff_press_low: bool,
+    pub diff_press_high: bool,    
+}
+
+
 impl<T, E> LPS25HB<T>
 where
     T: Interface<Error = E>,
@@ -197,6 +206,24 @@ where
 
     // --- END OF THE SECTION THAT COULD BE REMOVED --- 
 
+
+    /// Get all the flags from the INT_SOURCE register (NOTE: INT_SOURCE register is cleared by reading it)
+    pub fn get_int_status(&mut self) -> Result<IntSource, T::Error> {        
+        let status = IntSource {
+            /// Has any interrupt event been generated? (self clearing)
+            interrupt_active: self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::IA)?,
+            /// Has low differential pressure event been generated? (self clearing)
+            diff_press_low: self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::PL)?,
+            /// Has high differential pressure event been generated? (self clearing)
+            diff_press_high: self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::PH)?,
+        };
+        Ok(status)
+    }
+
+    // --- THESE FUNCTIONS COULD BE REMOVED ---
+
+    /*
+
     /// Has any interrupt event been generated? (self clearing)
     pub fn interrupt_active(&mut self) -> Result<bool, T::Error> {
         self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::IA)
@@ -211,5 +238,5 @@ where
     pub fn high_pressure_event_occurred(&mut self) -> Result<bool, T::Error> {
         self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::PH)
     }
-    
+     */
 }

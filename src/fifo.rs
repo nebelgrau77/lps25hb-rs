@@ -1,9 +1,5 @@
 //! Various functions related to FIFO
 //!
-//! TO DO: the FIFO_STATUS could be read to a struct, with a single function
-//! the struct would have four fields: 
-//! threshold_status, overrun_status, empty_status (all of them bools)
-//! and stored_data_level (u8)
 
 use super::*;
 
@@ -28,7 +24,7 @@ impl Default for FIFOConfig {
             enable_watermark: false,               // disabled
             enable_decimating: false,              // disabled
             fifo_mode: FIFO_MODE::Bypass,          // Bypass mode
-            watermark_level: 1u8,                  // 0 does not make sense as a default value
+            watermark_level: 32u8,                  // 0 does not make sense as a default value
             fifo_mean_config: FIFO_MEAN::_2sample, // 2 samples
         }
     }
@@ -61,6 +57,15 @@ impl FIFOConfig {
     }
 }
 
+#[derive(Debug)]
+/// Contents of the FIFO_STATUS register (threshold reached, overrun, empty, stored data level)
+pub struct FifoStatus {
+    pub fifo_thresh_reached: bool,
+    pub fifo_overrun: bool,
+    pub fifo_empty: bool,
+    pub fifo_level: u8,
+}
+
 impl<T, E> LPS25HB<T>
 where
     T: Interface<Error = E>,
@@ -84,7 +89,7 @@ where
         Ok(())
     }
 
-    // --- THE FOLLOWING SECTION COULD BE REMOVED --- 
+    // --- THE FOLLOWING SECTION COULD BE REMOVED ---
 
     /*
 
@@ -96,7 +101,7 @@ where
         }
     }
 
-    /// Select FIFO operation mode (see Table 22 for details)        
+    /// Select FIFO operation mode (see Table 22 for details)
     pub fn fifo_mode_config(&mut self, mode: FIFO_MODE) -> Result<(), T::Error> {
         let mut reg_data = [0u8];
         self.interface
@@ -108,7 +113,7 @@ where
         Ok(())
     }
 
-    /// Select sample size for FIFO Mean mode running average (see Table 23 for details)        
+    /// Select sample size for FIFO Mean mode running average (see Table 23 for details)
     pub fn fifo_mean_config(&mut self, sample: FIFO_MEAN) -> Result<(), T::Error> {
         let mut reg_data = [0u8];
         self.interface
@@ -178,11 +183,31 @@ where
             false => self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::F_OVR),
         }
     }
-    
+
     */
 
-    // --- END OF THE SECTION THAT COULD BE REMOVED --- 
+    // --- END OF THE SECTION THAT COULD BE REMOVED ---
 
+    /// Get flags and FIFO level from the FIFO_STATUS register
+    pub fn get_fifo_status(&mut self) -> Result<FifoStatus, T::Error> {
+        let status = FifoStatus {
+            /// Is FIFO filling equal or higher than the threshold?
+            fifo_thresh_reached: self
+                .is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::FTH_FIFO)?,
+            /// Is FIFO full and at least one sample has been overwritten?
+            fifo_overrun: self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::OVR)?,
+            /// Is FIFO empty?
+            fifo_empty: self
+                .is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::EMPTY_FIFO)?,
+            /// Read FIFO stored data level
+            fifo_level: self.read_fifo_level()?,
+        };
+        Ok(status)
+    }
+
+    // --- THESE FUNCTIONS COULD BE REMOVED ---
+
+    /*
     /// Is FIFO filling equal or higher than the threshold?
     pub fn fifo_threshold_status(&mut self) -> Result<bool, T::Error> {
         self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::FTH_FIFO)
@@ -197,9 +222,13 @@ where
     pub fn fifo_empty_status(&mut self) -> Result<bool, T::Error> {
         self.is_register_bit_flag_high(Registers::FIFO_STATUS, Bitmasks::EMPTY_FIFO)
     }
+     */
+
+    // --- THIS FUNCTION COULD BE PRIVATE ---
 
     /// Read FIFO stored data level
-    pub fn read_fifo_level(&mut self) -> Result<u8, T::Error> {
+    //pub fn read_fifo_level(&mut self) -> Result<u8, T::Error> {
+    fn read_fifo_level(&mut self) -> Result<u8, T::Error> {
         let mut reg_data = [0u8];
         self.interface
             .read(Registers::FIFO_STATUS.addr(), &mut reg_data)?;

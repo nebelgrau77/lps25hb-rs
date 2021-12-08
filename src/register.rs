@@ -1,7 +1,3 @@
-//! TO DO:
-//!
-//! - put bitmasks in structs
-//!
 //! Register mapping
 
 /// LPS25HB Registers

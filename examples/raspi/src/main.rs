@@ -1,6 +1,4 @@
-/* talking to the LPS25HB module over I2C on Raspberry Pi
-*/
-
+//! talking to the LPS25HB module over I2C on Raspberry Pi
 
 use rppal::i2c::I2c;
 

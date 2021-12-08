@@ -33,7 +33,7 @@
 //!
 //! lps25hb.sensor_on(true).unwrap();
 //!
-//! lps25.enable_one_shot().unwrap();
+//! lps25.one_shot().unwrap();
 //!
 //! let pressure = lps25.read_pressure().unwrap();
 //! let temperature = lps25.read_temperature().unwrap();
@@ -41,6 +41,10 @@
 //!
 
 // TO DO: move MULTIBYTE into the interface, as it is different between I2C and SPI
+// 
+// TO DO (IDEA): create an init() function with a Config struct. 
+// The configuration would include: power on (bool), ODR, block data update (bool), pressure resolution, temperature resolution. 
+
 
 #![no_std]
 //#![deny(warnings, missing_docs)]
@@ -59,7 +63,6 @@ use config::*;
 
 pub mod interrupt;
 use interrupt::*;
-
 
 pub mod interface;
 use interface::Interface;
@@ -94,18 +97,6 @@ where
     pub fn destroy(self) -> T {
         self.interface
     }
-
-    /*
-    /// Verifies communication with WHO_AM_I register
-    ///
-    /// USE GET_DEVICE_ID FOR THIS
-    pub fn sensor_is_reachable(&mut self) -> Result<bool, T::Error> {
-        let mut bytes = [0u8; 1];
-        let (who_am_i, register) = (WHOAMI, Registers::WHO_AM_I.addr());
-        self.interface.read(register, &mut bytes)?;
-        Ok(bytes[0] == who_am_i)
-    }
-     */
 
     /// Read a byte from the given register.
     fn read_register(&mut self, address: Registers) -> Result<u8, T::Error> {
@@ -228,6 +219,43 @@ impl FIFO_MEAN {
     }
 }
 
+/// INT_DRDY pin configuration. (Refer to Table 21)
+#[derive(Debug, Clone, Copy)]
+pub enum INT_DRDY {
+    /// Data signal (see CTRL_REG4)
+    DataSignal = 0b00,
+    /// Pressure high
+    P_high = 0b01,
+    /// Pressure low
+    P_low = 0b10,
+    /// Pressure low or high
+    P_low_or_high = 0b011,
+}
+
+impl INT_DRDY {
+    pub fn value(self) -> u8 {
+        self as u8 // no need to shift, bits 0:1
+    }
+}
+
+/// Interrupt active setting for the INT_DRDY pin: active high (default) or active low
+#[derive(Debug, Clone, Copy)]
+pub enum INT_ACTIVE {
+    /// Active high
+    High,
+    /// Active low
+    Low,
+}
+
+/// Interrupt pad setting for INT_DRDY pin: push-pull (default) or open-drain.
+#[derive(Debug, Clone, Copy)]
+pub enum INT_PIN {
+    /// Push-pull
+    PushPull,
+    /// Open drain
+    OpenDrain,
+}
+
 /// Temperature resolution configuration, number of internal average(Refer to Table 18)
 #[derive(Debug, Clone, Copy)]
 pub enum TEMP_RES {
@@ -264,41 +292,4 @@ impl PRESS_RES {
     pub fn value(self) -> u8 {
         self as u8 // no need to shift
     }
-}
-
-/// INT_DRDY pin configuration. (Refer to Table 21)
-#[derive(Debug, Clone, Copy)]
-pub enum INT_DRDY {
-    /// Data signal (see CTRL_REG4)
-    DataSignal = 0b00,
-    /// Pressure high
-    P_high = 0b01,
-    /// Pressure low
-    P_low = 0b10,
-    /// Pressure low or high
-    P_low_or_high = 0b011,
-}
-
-impl INT_DRDY {
-    pub fn value(self) -> u8 {
-        self as u8 // no need to shift, bits 0:1
-    }
-}
-
-/// Interrupt active setting for the INT_DRDY pin: active high (default) or active low
-#[derive(Debug, Clone, Copy)]
-pub enum INT_ACTIVE {
-    /// Active high
-    High,
-    /// Active low
-    Low,
-}
-
-/// Interrupt pad setting for INT_DRDY pin: push-pull (default) or open-drain.
-#[derive(Debug, Clone, Copy)]
-pub enum INT_PIN {
-    /// Push-pull
-    PushPull,
-    /// Open drain
-    OpenDrain,
 }

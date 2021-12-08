@@ -129,6 +129,5 @@ fn main() -> ! {
         led.set_low().ok();
         delay.delay_ms(50 as u32);
 
-
         }
 }

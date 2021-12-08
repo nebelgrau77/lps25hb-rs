@@ -7,11 +7,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.0] - 2021-12-08
+
 ### Added
 - interrupt configuration struct
 - enable_interrupts function that enables and configures the interrupt pin 
 - FIFO configuration struct
 - enable_fifo function that enables and configures the FIFO 
+- interrupt status read to a struct (various flags are fields)
+- data status (STATUS_REG) read to a struct (various flags are fields)
+- FIFO status read to a struct (various flags and also FIFO data level are fields)
+- one_shot() function in the sensor module; it sets ODR to OneShot and then enables the one shot mode
+
+### Removed
+- enable_one_shot() function
+- Single functions for pressure and temperature availability and overrun flag reading
+
+[0.1.0]: https://github.com/nebelgrau77/lps25hb-rs/releases/tag/v1.0.0
 
 ## [0.0.4] - 2021-12-04
 
