@@ -3,6 +3,9 @@
 /// LPS25HB Registers
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy)]
+
+// to do: do the registers and bitmasks need to be public to work?
+
 pub enum Registers {
     /// Reference pressure register.
     REF_P_XL = 0x08,

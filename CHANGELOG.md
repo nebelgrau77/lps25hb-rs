@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+- enable_interrupts() becomes configure_interrupts(), and the flag becomes a field of the configuration stuct (enable_differential)
+- enums used for interrupt pin configuration (active high/low and push-pull/open drain)
+- enums used for interrupt and data ready signals configuration (enabled/disabled)
+- get_data_status() reads all the flags in one go ()
+- get_int_status() reads all the flags in one go ()
+- get_fifo_status() reads all the flags in one go ()
+- FIFO enabled/disabled with new FIFO_ON enum
+- enable_fifo() renamed to configure_fifo() for consistency with configure_interrupts() naming
+
 ## [0.1.0] - 2021-12-08
 
 ### Added

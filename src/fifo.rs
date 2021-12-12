@@ -1,15 +1,18 @@
 //! Various functions related to FIFO
 //!
+//! TO DO: improve watermark level reading (?)
+
 
 use super::*;
 
 /// FIFO settings
 #[derive(Debug)]
 pub struct FIFOConfig {
+
     /// Stop on FIFO watermark (enable FIFO watermark use)
-    pub enable_watermark: bool, // default disabled
+    pub enable_watermark: FLAG, // default disabled
     /// Enable decimating output pressure to 1Hz with FIFO Mean mode
-    pub enable_decimating: bool, // default disabled
+    pub enable_decimating: FLAG, // default disabled
     /// Select FIFO operation mode (see Table 22 for details)        
     pub fifo_mode: FIFO_MODE, // default Bypass
     /// Set the watermark level
@@ -21,8 +24,8 @@ pub struct FIFOConfig {
 impl Default for FIFOConfig {
     fn default() -> Self {
         FIFOConfig {
-            enable_watermark: false,               // disabled
-            enable_decimating: false,              // disabled
+            enable_watermark: FLAG::Disabled,               // disabled
+            enable_decimating: FLAG::Disabled,              // disabled
             fifo_mode: FIFO_MODE::Bypass,          // Bypass mode
             watermark_level: 32u8,                  // 0 does not make sense as a default value
             fifo_mean_config: FIFO_MEAN::_2sample, // 2 samples
@@ -35,10 +38,10 @@ impl FIFOConfig {
     fn f_ctrl_reg2(&self) -> u8 {
         let mut data = 0u8;
         // THIS RESULT MUST THEN BE COMBINED WITH THE OTHER BIT SETTINGS
-        if self.enable_watermark {
+        if self.enable_watermark.status() {
             data |= 1 << 5;
         }
-        if self.enable_decimating {
+        if self.enable_decimating.status() {
             data |= 1 << 4;
         }
         data
@@ -71,10 +74,10 @@ where
     T: Interface<Error = E>,
 {
     /// Enable and configure FIFO
-    pub fn enable_fifo(&mut self, flag: bool, config: FIFOConfig) -> Result<(), T::Error> {
+    pub fn configure_fifo(&mut self, flag: FIFO_ON, config: FIFOConfig) -> Result<(), T::Error> {
         match flag {
-            true => self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
-            false => self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
+            FIFO_ON::Enabled => self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
+            FIFO_ON::Disabled => self.clear_register_bit_flag(Registers::CTRL_REG2, Bitmasks::FIFO_EN),
         }?;
 
         let mut reg_data = [0u8];
@@ -190,6 +193,35 @@ where
 
     /// Get flags and FIFO level from the FIFO_STATUS register
     pub fn get_fifo_status(&mut self) -> Result<FifoStatus, T::Error> {
+        
+        let reg_value = self.read_register(Registers::FIFO_STATUS)?;
+
+        let status = FifoStatus {
+            /// Is FIFO filling equal or higher than the threshold?
+            fifo_thresh_reached: match reg_value & Bitmasks::FTH_FIFO {
+                0 => false,
+                _ => true,
+            },
+            /// Is FIFO full and at least one sample has been overwritten?
+            fifo_overrun: match reg_value & Bitmasks::OVR {
+                0 => false,
+                _ => true,
+            },
+            /// Is FIFO empty?
+            fifo_empty: match reg_value & Bitmasks::EMPTY_FIFO {
+                0 => false,
+                _ => true,
+            },
+            
+            /// Read FIFO stored data level
+            
+            // TO DO: REPLACE WITH BITMASKING
+            
+            fifo_level: self.read_fifo_level()?,
+
+          };
+
+        /*
         let status = FifoStatus {
             /// Is FIFO filling equal or higher than the threshold?
             fifo_thresh_reached: self
@@ -202,6 +234,7 @@ where
             /// Read FIFO stored data level
             fifo_level: self.read_fifo_level()?,
         };
+        */
         Ok(status)
     }
 

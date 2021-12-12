@@ -22,7 +22,9 @@
 //!
 //! [examples]: https://github.com/nebelgrau77/lps25hb-rs/examples
 //!
-//! ### Read pressure and temperature
+//! ### Initialize the sensor with a chosen interface
+//! 
+//! ### Read pressure and temperature - one shot
 //!
 //! ```rust
 //!
@@ -39,12 +41,28 @@
 //! let temperature = lps25.read_temperature().unwrap();
 //! ```
 //!
+//! ### Continuous mode
+//! - set the Output Data Rate
+//! 
+//! ### Data availability
+//! - check data status
+//! 
+//! ### FIFO functionality
+//! - configure and enable FIFO
+//! 
+//! ### Interrupts and data ready signal
+//! - configure data ready signals
+//! - configure interrupts
+//! - set reference pressure
+//! - autozero functions
+//! 
+//! ### Other functions 
+//! - reboot
+//! - software reset
 
-// TO DO: move MULTIBYTE into the interface, as it is different between I2C and SPI
-// 
+// TO DO: move MULTIBYTE into the interface, as it is different between I2C and SPI 
 // TO DO (IDEA): create an init() function with a Config struct. 
-// The configuration would include: power on (bool), ODR, block data update (bool), pressure resolution, temperature resolution. 
-
+// The configuration could include: power on (bool), ODR, block data update (bool), pressure resolution, temperature resolution.
 
 #![no_std]
 //#![deny(warnings, missing_docs)]
@@ -247,6 +265,16 @@ pub enum INT_ACTIVE {
     Low,
 }
 
+impl INT_ACTIVE {
+    pub fn status(self) -> bool {
+        let status = match self {
+            INT_ACTIVE::High => false,
+            INT_ACTIVE::Low => true,
+        };
+        status
+    }
+}
+
 /// Interrupt pad setting for INT_DRDY pin: push-pull (default) or open-drain.
 #[derive(Debug, Clone, Copy)]
 pub enum INT_PIN {
@@ -255,6 +283,58 @@ pub enum INT_PIN {
     /// Open drain
     OpenDrain,
 }
+
+impl INT_PIN {
+    pub fn status(self) -> bool {
+        let status = match self {
+            INT_PIN::PushPull => false,
+            INT_PIN::OpenDrain => true,
+        };
+        status
+    }
+}
+
+
+/// Settings for various FIFO- and interrupt-related flags, Enabled or Disabled
+
+#[derive(Debug, Clone, Copy)]
+pub enum FLAG {
+    /// Enabled (bit set)
+    Enabled,
+    /// Disabled (bit cleared)
+    Disabled,
+}
+
+impl FLAG {
+    pub fn status(self) -> bool {
+        let status = match self {
+            FLAG::Disabled => false,
+            FLAG::Enabled => true,
+        };
+        status
+    }
+}
+
+/// FIFO on/off
+
+#[derive(Debug, Clone, Copy)]
+pub enum FIFO_ON {
+    /// Enabled (bit set)
+    Enabled,
+    /// Disabled (bit cleared)
+    Disabled,
+}
+
+impl FIFO_ON {
+    pub fn status(self) -> bool {
+        let status = match self {
+            FIFO_ON::Disabled => false,
+            FIFO_ON::Enabled => true,
+        };
+        status
+    }
+}
+
 
 /// Temperature resolution configuration, number of internal average(Refer to Table 18)
 #[derive(Debug, Clone, Copy)]

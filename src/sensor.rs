@@ -1,6 +1,8 @@
 //! TO DO:
+//! 
 //! - reference pressure reading
 //! - use MULTIBYTE from the interface (or introduce it directly in the interface)
+//! - reference pressure setting
 
 use super::*;
 
@@ -10,7 +12,7 @@ pub struct DataStatus {
     pub press_overrun: bool,
     pub temp_overrun: bool,
     pub press_available: bool,
-    pub temp_available: bool, 
+    pub temp_available: bool,
 }
 
 impl<T, E> LPS25HB<T>
@@ -104,31 +106,59 @@ where
 
         Ok(())
     }
-  
+
     /// Get all the flags from the STATUS_REG register
-    pub fn get_data_status(&mut self) -> Result<DataStatus, T::Error> {        
+    pub fn get_data_status(&mut self) -> Result<DataStatus, T::Error> {
+        // TO DO: use this value for reading all the bitflags in one go
+        // use bitmasks
+        let reg_value = self.read_register(Registers::STATUS_REG)?;
+
         let status = DataStatus {
             /// Has new pressure data overwritten the previous one?
-            press_overrun: self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::P_OR)?,            
+            press_overrun: match reg_value & Bitmasks::P_OR {
+                0 => false,
+                _ => true,
+            },
             /// Has new temperature data overwritten the previous one?
-            temp_overrun: self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::T_OR)?,                
+            temp_overrun: match reg_value & Bitmasks::T_OR {
+                0 => false,
+                _ => true,
+            },
+            /// Is new pressure data available?
+            press_available: match reg_value & Bitmasks::P_DA {
+                0 => false,
+                _ => true,
+            },
+            /// Is new temperature data available?
+            temp_available: match reg_value & Bitmasks::T_DA {
+                0 => false,
+                _ => true,
+            },
+        };
+
+        /*
+        let status = DataStatus {
+            /// Has new pressure data overwritten the previous one?
+            press_overrun: self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::P_OR)?,
+            /// Has new temperature data overwritten the previous one?
+            temp_overrun: self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::T_OR)?,
             /// Is new pressure data available?
             press_available: self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::P_DA)?,
             /// Is new temperature data available?
             temp_available: self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::T_DA)?,
         };
-        Ok(status)    
+        */
+        Ok(status)
     }
 
-    /// Triggers a single measurement of pressure and temperature. 
-    /// Once the measurement is done, the ONE_SHOT bit will self-clear, the new data are available in the output registers, 
-    /// and the STATUS_REG bits are updated. 
+    /// Triggers a single measurement of pressure and temperature.
+    /// Once the measurement is done, the ONE_SHOT bit will self-clear, the new data are available in the output registers,
+    /// and the STATUS_REG bits are updated.
     pub fn one_shot(&mut self) -> Result<(), T::Error> {
         self.set_datarate(ODR::OneShot)?; // make sure that OneShot mode is enabled
         self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::ONE_SHOT)?;
         Ok(())
     }
-
 
     // --- THESE FUNCTIONS COULD BE REMOVED ---
 
