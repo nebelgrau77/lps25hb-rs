@@ -112,8 +112,8 @@ where
         config: InterruptConfig,
     ) -> Result<(), T::Error> {
         match config.enable_differential {
-            true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
-            false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
+            FLAG::Enabled => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
+            FLAG::Disabled => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
         }?;
 
         self.interface
