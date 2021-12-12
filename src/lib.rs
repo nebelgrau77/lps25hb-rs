@@ -63,6 +63,9 @@
 // TO DO: move MULTIBYTE into the interface, as it is different between I2C and SPI 
 // TO DO (IDEA): create an init() function with a Config struct. 
 // The configuration could include: power on (bool), ODR, block data update (bool), pressure resolution, temperature resolution.
+// 
+// TO DO: split raw sensor reading between pressure and temperature (impacts STATUS_REG)
+
 
 #![no_std]
 //#![deny(warnings, missing_docs)]
@@ -117,7 +120,11 @@ where
     }
 
     /// Read a byte from the given register.
-    fn read_register(&mut self, address: Registers) -> Result<u8, T::Error> {
+    /// 
+
+    // public for testing
+
+    pub fn read_register(&mut self, address: Registers) -> Result<u8, T::Error> {
         let mut reg_data = [0u8];
         self.interface.read(address.addr(), &mut reg_data)?;
         Ok(reg_data[0])
