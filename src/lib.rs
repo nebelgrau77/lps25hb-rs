@@ -64,32 +64,30 @@
 // TO DO (IDEA): create an init() function with a Config struct. 
 // The configuration could include: power on (bool), ODR, block data update (bool), pressure resolution, temperature resolution.
 // 
-// TO DO: split raw sensor reading between pressure and temperature (impacts STATUS_REG)
-
 
 #![no_std]
 //#![deny(warnings, missing_docs)]
 
 pub mod sensor;
-use sensor::*;
+//use sensor::*;
 
 pub mod register;
-use register::*;
+use register::{Registers, Bitmasks};
 
 pub mod fifo;
-use fifo::*;
+//use fifo::*;
 
 pub mod config;
-use config::*;
+//use config::*;
 
 pub mod interrupt;
-use interrupt::*;
+//use interrupt::*;
 
 pub mod interface;
 use interface::Interface;
 
 /// Sensor's ID
-const WHOAMI: u8 = 0b10111101; // decimal value 189
+// const WHOAMI: u8 = 0b10111101; // decimal value 189
 
 // https://www.st.com/resource/en/technical_note/dm00242307-how-to-interpret-pressure-and-temperature-readings-in-the-lps25hb-pressure-sensor-stmicroelectronics.pdf
 
@@ -169,6 +167,7 @@ where
 }
 
 /// Output data rate and power mode selection (ODR). (Refer to Table 20)
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum ODR {
     /// One-shot mode enabled
@@ -190,6 +189,7 @@ impl ODR {
 }
 
 /// SPI interface mode
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum SPI_Mode {
     /// 4-wire mode (default)
@@ -199,6 +199,7 @@ pub enum SPI_Mode {
 }
 
 /// FIFO mode selection. (Refer to Table 22)
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum FIFO_MODE {
     /// Bypass mode
@@ -224,6 +225,7 @@ impl FIFO_MODE {
 }
 
 /// FIFO Mean mode running average sample size. (Refer to Table 23)
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum FIFO_MEAN {
     /// 2-sample moving average
@@ -245,6 +247,7 @@ impl FIFO_MEAN {
 }
 
 /// INT_DRDY pin configuration. (Refer to Table 21)
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum INT_DRDY {
     /// Data signal (see CTRL_REG4)
@@ -264,6 +267,7 @@ impl INT_DRDY {
 }
 
 /// Interrupt active setting for the INT_DRDY pin: active high (default) or active low
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum INT_ACTIVE {
     /// Active high
@@ -283,6 +287,7 @@ impl INT_ACTIVE {
 }
 
 /// Interrupt pad setting for INT_DRDY pin: push-pull (default) or open-drain.
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum INT_PIN {
     /// Push-pull
@@ -303,7 +308,7 @@ impl INT_PIN {
 
 
 /// Settings for various FIFO- and interrupt-related flags, Enabled or Disabled
-
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum FLAG {
     /// Enabled (bit set)
@@ -323,7 +328,7 @@ impl FLAG {
 }
 
 /// FIFO on/off
-
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum FIFO_ON {
     /// Enabled (bit set)
@@ -344,6 +349,7 @@ impl FIFO_ON {
 
 
 /// Temperature resolution configuration, number of internal average(Refer to Table 18)
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum TEMP_RES {
     /// Nr. internal average 8
@@ -363,6 +369,7 @@ impl TEMP_RES {
 }
 
 /// Pressure resolution configuration, number of internal average(Refer to Table 19)
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy)]
 pub enum PRESS_RES {
     /// Nr. internal average 8

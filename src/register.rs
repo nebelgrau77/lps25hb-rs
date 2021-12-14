@@ -6,6 +6,7 @@
 
 // to do: do the registers and bitmasks need to be public to work?
 
+// pub (crate) enum Registers { // USE THIS IN THE FINAL VERSION
 pub enum Registers {
     /// Reference pressure register.
     REF_P_XL = 0x08,
@@ -63,73 +64,76 @@ impl Registers {
 
 /// LPS25HB Bit masks
 
-pub struct Bitmasks;
 
-impl Bitmasks {
+pub (crate) struct Bitmasks;
+
+#[allow(dead_code)]
+
+impl Bitmasks {    
     // === RES_CONF (0x10) ===
-    pub const AVGT_MASK: u8 = 0b0000_1100;
-    pub const AVGP_MASK: u8 = 0b0000_0011;
+    pub (crate) const AVGT_MASK: u8 = 0b0000_1100;
+    pub (crate) const AVGP_MASK: u8 = 0b0000_0011;
 
     // === CTRL_REG1 (0x20) ===
     /// Power down control
-    pub const PD: u8 = 0b1000_0000;
+    pub (crate) const PD: u8 = 0b1000_0000;
     /// Output data rate selection
-    pub const ODR_MASK: u8 = 0b0111_0000;
-    pub const DIFF_EN: u8 = 0b0000_1000;
-    pub const BDU: u8 = 0b0000_0100;
-    pub const RESET_AZ: u8 = 0b0000_0010;
-    pub const SIM: u8 = 0b0000_0001;
+    pub (crate) const ODR_MASK: u8 = 0b0111_0000;
+    pub (crate) const DIFF_EN: u8 = 0b0000_1000;
+    pub (crate) const BDU: u8 = 0b0000_0100;
+    pub (crate) const RESET_AZ: u8 = 0b0000_0010;
+    pub (crate) const SIM: u8 = 0b0000_0001;
 
     // === CTRL_REG2 (0x21) ===
-    pub const BOOT: u8 = 0b1000_0000;
-    pub const FIFO_EN: u8 = 0b0100_0000;
-    pub const STOP_ON_FTH: u8 = 0b0010_0000;
-    pub const FIFO_MEAN_DEC: u8 = 0b0001_0000;
-    pub const I2C_DIS: u8 = 0b0000_1000;
-    pub const SWRESET: u8 = 0b0000_0100;
-    pub const AUTOZERO: u8 = 0b0000_0010;
+    pub (crate) const BOOT: u8 = 0b1000_0000;
+    pub (crate) const FIFO_EN: u8 = 0b0100_0000;
+    pub (crate) const STOP_ON_FTH: u8 = 0b0010_0000;
+    pub (crate) const FIFO_MEAN_DEC: u8 = 0b0001_0000;
+    pub (crate) const I2C_DIS: u8 = 0b0000_1000;
+    pub (crate) const SWRESET: u8 = 0b0000_0100;
+    pub (crate) const AUTOZERO: u8 = 0b0000_0010;
 
     /// Enable single shot to acquire a new dataset
-    pub const ONE_SHOT: u8 = 0b0000_0001;
+    pub (crate) const ONE_SHOT: u8 = 0b0000_0001;
 
     // === CTRL_REG3 (0x22) ===
-    pub const INT_H_L: u8 = 0b1000_0000;
-    pub const PP_OD: u8 = 0b0100_0000;
-    pub const INT_S_MASK: u8 = 0b0000_0011;
+    pub (crate) const INT_H_L: u8 = 0b1000_0000;
+    pub (crate) const PP_OD: u8 = 0b0100_0000;
+    pub (crate) const INT_S_MASK: u8 = 0b0000_0011;
 
     // === CTRL_REG4 (0x23) ===
-    pub const F_EMPTY: u8 = 0b0000_1000;
-    pub const F_FTH: u8 = 0b0000_0100;
-    pub const F_OVR: u8 = 0b0000_0010;
-    pub const DRDY: u8 = 0b0000_0001;
+    pub (crate) const F_EMPTY: u8 = 0b0000_1000;
+    pub (crate) const F_FTH: u8 = 0b0000_0100;
+    pub (crate) const F_OVR: u8 = 0b0000_0010;
+    pub (crate) const DRDY: u8 = 0b0000_0001;
 
     // === INTERRUPT_CFG (0x24) ===
-    pub const LIR: u8 = 0b0000_0100;
-    pub const PL_E: u8 = 0b0000_0010;
-    pub const PH_E: u8 = 0b0000_0001;
+    pub (crate) const LIR: u8 = 0b0000_0100;
+    pub (crate) const PL_E: u8 = 0b0000_0010;
+    pub (crate) const PH_E: u8 = 0b0000_0001;
 
     // === FIFO_CTRL (0x2E) ===
-    pub const F_MODE_MASK: u8 = 0b1110_0000;
-    pub const WTM_POINT_MASK: u8 = 0b0001_1111;
+    pub (crate) const F_MODE_MASK: u8 = 0b1110_0000;
+    pub (crate) const WTM_POINT_MASK: u8 = 0b0001_1111;
 
     // === INT_SOURCE (0x25) ===
-    pub const IA: u8 = 0b0000_0100;
-    pub const PL: u8 = 0b0000_0010;
-    pub const PH: u8 = 0b0000_0001;
+    pub (crate) const IA: u8 = 0b0000_0100;
+    pub (crate) const PL: u8 = 0b0000_0010;
+    pub (crate) const PH: u8 = 0b0000_0001;
 
     // === STATUS_REG (0x27) ===
-    pub const P_OR: u8 = 0b0010_0000;
-    pub const T_OR: u8 = 0b0001_0000;
-    pub const P_DA: u8 = 0b0000_0010;
-    pub const T_DA: u8 = 0b0000_0001;
+    pub (crate) const P_OR: u8 = 0b0010_0000;
+    pub (crate) const T_OR: u8 = 0b0001_0000;
+    pub (crate) const P_DA: u8 = 0b0000_0010;
+    pub (crate) const T_DA: u8 = 0b0000_0001;
 
     // === FIFO_STATUS (0x2F) ===
-    pub const FTH_FIFO: u8 = 0b1000_0000;
-    pub const OVR: u8 = 0b0100_0000;
-    pub const EMPTY_FIFO: u8 = 0b0010_0000;
-    pub const FSS_MASK: u8 = 0b0001_1111;
+    pub (crate) const FTH_FIFO: u8 = 0b1000_0000;
+    pub (crate) const OVR: u8 = 0b0100_0000;
+    pub (crate) const EMPTY_FIFO: u8 = 0b0010_0000;
+    pub (crate) const FSS_MASK: u8 = 0b0001_1111;
 
     // === MULTIBYTE READ ===
     /// Must be OR'ed with the register address to enable multibyte data reading (temperature/pressure)
-    pub const MULTIBYTE: u8 = 0b1000_0000;
+    pub (crate) const MULTIBYTE: u8 = 0b1000_0000;
 }

@@ -34,6 +34,8 @@ where
     
     // TO DO: split into separate pressure and temperature reading: otherwise it impacts the STATUS_REG
 
+    /*
+
     fn read_sensor_raw(&mut self) -> Result<(i32, i16), T::Error> {
         let mut data = [0u8; 5];
         self.interface.read(
@@ -44,6 +46,8 @@ where
         let t: i16 = (data[4] as i16) << 8 | (data[3] as i16);
         Ok((p, t))
     }
+
+     */
 
     /// Calculated pressure reading in hPa
     pub fn read_pressure(&mut self) -> Result<f32, T::Error> {
