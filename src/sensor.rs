@@ -3,7 +3,7 @@
 //! - reference pressure reading
 //! - use MULTIBYTE from the interface (or introduce it directly in the interface)
 //! - reference pressure setting
-//!
+
 //! - split pressure and temperature reading, as reading it impacts the STATUS_REG values
 
 use super::*;
@@ -31,6 +31,9 @@ where
     }
 
     /// Raw sensor reading (3 bytes of pressure data and 2 bytes of temperature data)
+    
+    // TO DO: split into separate pressure and temperature reading: otherwise it impacts the STATUS_REG
+
     fn read_sensor_raw(&mut self) -> Result<(i32, i16), T::Error> {
         let mut data = [0u8; 5];
         self.interface.read(
