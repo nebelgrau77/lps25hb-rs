@@ -1,8 +1,10 @@
 //! TO DO:
-//! 
+//!
 //! - reference pressure reading
 //! - use MULTIBYTE from the interface (or introduce it directly in the interface)
 //! - reference pressure setting
+//!
+//! - split pressure and temperature reading, as reading it impacts the STATUS_REG values
 
 use super::*;
 
@@ -42,10 +44,40 @@ where
 
     /// Calculated pressure reading in hPa
     pub fn read_pressure(&mut self) -> Result<f32, T::Error> {
+        let mut data = [0u8; 3];
+        self.interface.read(
+            Registers::PRESS_OUT_XL.addr() | Bitmasks::MULTIBYTE,
+            &mut data,
+        )?;
+        let p: i32 = (data[2] as i32) << 16 | (data[1] as i32) << 8 | (data[0] as i32);
+        let pressure = (p as f32) / PRESS_SCALE; // no need to take care of negative values
+        Ok(pressure)
+    }
+
+    /// Calculated temperaure reading in degrees Celsius
+    pub fn read_temperature(&mut self) -> Result<f32, T::Error> {
+        let mut data = [0u8; 2];
+        self.interface.read(
+            Registers::TEMP_OUT_L.addr() | Bitmasks::MULTIBYTE,
+            &mut data,
+        )?;
+        let t: i16 = (data[1] as i16) << 8 | (data[0] as i16);
+        let temperature = (t as f32) / TEMP_SCALE + TEMP_OFFSET;
+        Ok(temperature)
+    }
+
+    /*
+
+    /// Calculated pressure reading in hPa
+    pub fn read_pressure(&mut self) -> Result<f32, T::Error> {
         let (p, _t) = self.read_sensor_raw()?;
         let pressure = (p as f32) / PRESS_SCALE; // no need to take care of negative values
         Ok(pressure)
     }
+
+     */
+
+    /*
 
     /// Calculated temperaure reading in degrees Celsius
     pub fn read_temperature(&mut self) -> Result<f32, T::Error> {
@@ -54,6 +86,7 @@ where
         let temperature = (t as f32) / TEMP_SCALE + TEMP_OFFSET;
         Ok(temperature)
     }
+    */
 
     /// Read pressure offset value, 16-bit data that can be used to implement One-Point Calibration (OPC) after soldering.
     pub fn read_pressure_offset(&mut self) -> Result<i16, T::Error> {
