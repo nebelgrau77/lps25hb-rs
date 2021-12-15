@@ -63,6 +63,8 @@
 // TO DO: move MULTIBYTE into the interface, as it is different between I2C and SPI 
 // TO DO (IDEA): create an init() function with a Config struct. 
 // The configuration could include: power on (bool), ODR, block data update (bool), pressure resolution, temperature resolution.
+//
+// TO DO: REMOVE PUB FROM READ_REGISTER() FUNCTION AFTER THE TESTS 
 // 
 
 #![no_std]

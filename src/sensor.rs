@@ -95,6 +95,15 @@ where
     }
     */
 
+    /// Calculated reference pressure reading in hPa
+    pub fn read_reference_pressure(&mut self) -> Result<f32, T::Error> {
+        let mut data = [0u8; 3];
+        self.interface.read(Registers::REF_P_XL.addr(), &mut data)?;
+        let p: i32 = (data[2] as i32) << 16 | (data[1] as i32) << 8 | (data[0] as i32);
+        let pressure: f32 = (p as f32) / PRESS_SCALE;
+        Ok(pressure)
+    }
+
     /// Read pressure offset value, 16-bit data that can be used to implement One-Point Calibration (OPC) after soldering.
     pub fn read_pressure_offset(&mut self) -> Result<i16, T::Error> {
         let mut data = [0u8; 2];
@@ -123,10 +132,12 @@ where
         payload[0] = (threshold & 0xff) as u8; // lower byte
         payload[1] = (threshold >> 8) as u8; // upper byte
 
+        // this doesn't really need the multibyte, or it can be written in one go
+
         self.interface
-            .write(Registers::THS_P_L.addr() | Bitmasks::MULTIBYTE, payload[0])?;
+            .write(Registers::THS_P_L.addr(), payload[0])?;
         self.interface
-            .write(Registers::THS_P_H.addr() | Bitmasks::MULTIBYTE, payload[1])?;
+            .write(Registers::THS_P_H.addr(), payload[1])?;
 
         Ok(())
     }
@@ -140,9 +151,9 @@ where
         payload[1] = (offset >> 8) as u8; // upper byte
 
         self.interface
-            .write(Registers::RPDS_L.addr() | Bitmasks::MULTIBYTE, payload[0])?;
+            .write(Registers::RPDS_L.addr(), payload[0])?;
         self.interface
-            .write(Registers::RPDS_H.addr() | Bitmasks::MULTIBYTE, payload[1])?;
+            .write(Registers::RPDS_H.addr(), payload[1])?;
 
         Ok(())
     }

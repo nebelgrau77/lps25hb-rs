@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - get_fifo_status() reads all the flags in one go ()
 - FIFO enabled/disabled with new FIFO_ON enum
 - enable_fifo() renamed to configure_fifo() for consistency with configure_interrupts() naming
+- read_pressure() and read_temperature() are independent, this way STATUS_REG is only affected for the parameter actually read (pressure or temperature, not both at once)
+
 
 ## [0.1.0] - 2021-12-08
 
