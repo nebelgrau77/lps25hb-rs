@@ -5,7 +5,6 @@ use super::*;
 /// Interrupt pin settings
 #[derive(Debug)]
 pub struct InterruptConfig {
-
     /// configure interrupt pin as active high or active low
     pub active_high_or_low: INT_ACTIVE,
     /// configure interrupt pin as  push-pull or open drain

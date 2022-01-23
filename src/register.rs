@@ -64,11 +64,9 @@ impl Registers {
 
 /// LPS25HB Bit masks
 
-
+#[allow(non_camel_case_types)]
 pub (crate) struct Bitmasks;
-
 #[allow(dead_code)]
-
 impl Bitmasks {    
     // === RES_CONF (0x10) ===
     pub (crate) const AVGT_MASK: u8 = 0b0000_1100;

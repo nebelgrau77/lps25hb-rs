@@ -98,7 +98,7 @@ where
     /// Calculated reference pressure reading in hPa
     pub fn read_reference_pressure(&mut self) -> Result<f32, T::Error> {
         let mut data = [0u8; 3];
-        self.interface.read(Registers::REF_P_XL.addr(), &mut data)?;
+        self.interface.read(Registers::REF_P_XL.addr() | Bitmasks::MULTIBYTE, &mut data)?;
         let p: i32 = (data[2] as i32) << 16 | (data[1] as i32) << 8 | (data[0] as i32);
         let pressure: f32 = (p as f32) / PRESS_SCALE;
         Ok(pressure)
