@@ -1,10 +1,8 @@
-//! TO DO:
+//! Functions related to sensor measurements: reading value or status, setting offset and reference
 //!
-//! - reference pressure reading
+//! TO DO://!
 //! - use MULTIBYTE from the interface (or introduce it directly in the interface)
 //! - reference pressure setting
-
-//! - split pressure and temperature reading, as reading it impacts the STATUS_REG values
 
 use super::*;
 
@@ -30,25 +28,6 @@ where
         Ok(whoami)
     }
 
-    /// Raw sensor reading (3 bytes of pressure data and 2 bytes of temperature data)
-    
-    // TO DO: split into separate pressure and temperature reading: otherwise it impacts the STATUS_REG
-
-    /*
-
-    fn read_sensor_raw(&mut self) -> Result<(i32, i16), T::Error> {
-        let mut data = [0u8; 5];
-        self.interface.read(
-            Registers::PRESS_OUT_XL.addr() | Bitmasks::MULTIBYTE,
-            &mut data,
-        )?;
-        let p: i32 = (data[2] as i32) << 16 | (data[1] as i32) << 8 | (data[0] as i32);
-        let t: i16 = (data[4] as i16) << 8 | (data[3] as i16);
-        Ok((p, t))
-    }
-
-     */
-
     /// Calculated pressure reading in hPa
     pub fn read_pressure(&mut self) -> Result<f32, T::Error> {
         let mut data = [0u8; 3];
@@ -72,29 +51,7 @@ where
         let temperature = (t as f32) / TEMP_SCALE + TEMP_OFFSET;
         Ok(temperature)
     }
-
-    /*
-
-    /// Calculated pressure reading in hPa
-    pub fn read_pressure(&mut self) -> Result<f32, T::Error> {
-        let (p, _t) = self.read_sensor_raw()?;
-        let pressure = (p as f32) / PRESS_SCALE; // no need to take care of negative values
-        Ok(pressure)
-    }
-
-     */
-
-    /*
-
-    /// Calculated temperaure reading in degrees Celsius
-    pub fn read_temperature(&mut self) -> Result<f32, T::Error> {
-        let (_p, t) = self.read_sensor_raw()?;
-        // negative values taken care of, as the raw value is a signed 16-bit
-        let temperature = (t as f32) / TEMP_SCALE + TEMP_OFFSET;
-        Ok(temperature)
-    }
-    */
-
+    
     /// Calculated reference pressure reading in hPa
     pub fn read_reference_pressure(&mut self) -> Result<f32, T::Error> {
         let mut data = [0u8; 3];
@@ -123,6 +80,9 @@ where
         Ok(ths / 16) // this will return value in hPa
     }
 
+    // these two functions doen't really need the multibyte, 
+    // as they are written as two separate bytes
+
     /// Set threshold value for pressure interrupt generation (VALUE IN hPA!)
     pub fn set_threshold(&mut self, threshold: u16) -> Result<(), T::Error> {
         let mut payload = [0u8; 2];
@@ -130,9 +90,7 @@ where
         let threshold = threshold * 16;
 
         payload[0] = (threshold & 0xff) as u8; // lower byte
-        payload[1] = (threshold >> 8) as u8; // upper byte
-
-        // this doesn't really need the multibyte, or it can be written in one go
+        payload[1] = (threshold >> 8) as u8; // upper byte        
 
         self.interface
             .write(Registers::THS_P_L.addr(), payload[0])?;
@@ -157,6 +115,89 @@ where
 
         Ok(())
     }
+
+/// Set the reference pressure (value in hPA)
+pub fn set_reference_pressure(&mut self, pressure: u16) -> Result<(), T::Error> {
+        
+    /*
+    self.interface.read(Registers::REF_P_XL.addr(), &mut data)?;
+    let p: i32 = (data[2] as i32) << 16 | (data[1] as i32) << 8 | (data[0] as i32);
+    let pressure: f32 = (p as f32) / PRESS_SCALE;
+    
+    
+    let pressure = pressure * PRESS_SCALE;
+
+    let mut payload = [0u8; 3];
+    
+    // value must be split into three bytes
+
+    payload[0] = (pressure & 0xff) as u8; // XL byte
+    payload[1] = (pressure >> 8) as u8; // L byte
+    payload[2] = (pressure >> 16) as u8; // H byte
+            
+    */
+    
+
+    /*
+
+            /**
+             * @brief  pressure_ref:   The Reference pressure value is a 24-bit data
+            *         expressed as 2’s complement. The value is used when AUTOZERO
+            *         or AUTORIFP function is enabled.[set]
+            *
+            * @param  ctx    Read / write interface definitions
+            * @param  buff   Buffer that contains data to write
+            * @retval        Interface status (MANDATORY: return 0 -> no Error).
+            *
+            */
+            int32_t lps22hb_pressure_ref_set(stmdev_ctx_t *ctx, int32_t val)
+            {
+            uint8_t buff[3];
+            int32_t ret;
+
+            buff[2] = (uint8_t)((uint32_t)val / 65536U);
+            buff[1] = (uint8_t)((uint32_t)val - (buff[2] * 65536U)) / 256U;
+            buff[0] = (uint8_t)((uint32_t)val - (buff[2] * 65536U) -
+                                (buff[1] * 256U));
+            ret =  lps22hb_write_reg(ctx, LPS22HB_REF_P_XL, buff, 3);
+
+            return ret;
+            }
+
+            /**
+             * @brief  pressure_ref:   The Reference pressure value is a 24-bit data
+            *         expressed as 2’s complement. The value is used when AUTOZERO
+            *         or AUTORIFP function is enabled.[get]
+            *
+            * @param  ctx    Read / write interface definitions
+            * @param  buff   Buffer that stores data read
+            * @retval        Interface status (MANDATORY: return 0 -> no Error).
+            *
+            */
+            int32_t lps22hb_pressure_ref_get(stmdev_ctx_t *ctx, int32_t *val)
+            {
+            uint8_t buff[3];
+            int32_t ret;
+
+            ret =  lps22hb_read_reg(ctx, LPS22HB_REF_P_XL, buff, 3);
+            *val = (int32_t)buff[2];
+            *val = (*val * 256) + (int32_t)buff[1];
+            *val = (*val * 256) + (int32_t)buff[0];
+
+            return ret;
+            }
+
+    */
+
+
+
+
+    
+    Ok(())
+}
+
+
+
 
     /// Get all the flags from the STATUS_REG register
     pub fn get_data_status(&mut self) -> Result<DataStatus, T::Error> {
@@ -186,19 +227,7 @@ where
                 _ => true,
             },
         };
-
-        /*
-        let status = DataStatus {
-            /// Has new pressure data overwritten the previous one?
-            press_overrun: self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::P_OR)?,
-            /// Has new temperature data overwritten the previous one?
-            temp_overrun: self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::T_OR)?,
-            /// Is new pressure data available?
-            press_available: self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::P_DA)?,
-            /// Is new temperature data available?
-            temp_available: self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::T_DA)?,
-        };
-        */
+        
         Ok(status)
     }
 
@@ -209,29 +238,5 @@ where
         self.set_datarate(ODR::OneShot)?; // make sure that OneShot mode is enabled
         self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::ONE_SHOT)?;
         Ok(())
-    }
-
-    // --- THESE FUNCTIONS COULD BE REMOVED ---
-
-    /*
-    /// Has new pressure data overwritten the previous one?
-    pub fn pressure_data_overrun(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::P_OR)
-    }
-
-    /// Has new temperature data overwritten the previous one?
-    pub fn temperature_data_overrun(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::T_OR)
-    }
-
-    /// Is new pressure data available?
-    pub fn pressure_data_available(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::P_DA)
-    }
-
-    /// Is new temperature data available?
-    pub fn temperature_data_available(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::STATUS_REG, Bitmasks::T_DA)
-    }
-     */
+    }    
 }

@@ -1,5 +1,6 @@
 //! Various functions related to configuration
 //!
+//! TO DO: check if all the functions are implemented
 
 use super::*;
 
@@ -42,17 +43,7 @@ where
         self.interface.write(Registers::RES_CONF.addr(), payload)?;
         Ok(())
     }
-
-    // --- THIS FUNCTION CAN BE REMOVED
-
-    /*
-    /// Enable single shot data acquisition (self cleared by hardware).
-    pub fn enable_one_shot(&mut self) -> Result<(), T::Error> {
-        // self.set_datarate(ODR::OneShot)?; // make sure that OneShot mode is enabled
-        self.set_register_bit_flag(Registers::CTRL_REG2, Bitmasks::ONE_SHOT)?;
-        Ok(())
-    }
-     */
+    
     /// Enable or disable block data update
     pub fn bdu_enable(&mut self, flag: bool) -> Result<(), T::Error> {
         match flag {

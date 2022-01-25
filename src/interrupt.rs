@@ -56,8 +56,7 @@ impl InterruptConfig {
         }
         if self.pushpull_or_opendrain.status() {
             data |= 1 << 6;
-        }
-        // MUST USE THE ACTUAL u8 VALUE HERE
+        }        
         data |= self.data_signal_config.value();
         data
     }
@@ -76,7 +75,7 @@ impl InterruptConfig {
             data |= 1;
         }
         data
-    }
+    }    
     fn int_interrupt_cfg(&self) -> u8 {
         let mut data = 0u8;
         if self.enable_latch_interrupt.status() {
@@ -106,15 +105,13 @@ where
 {
     /// Configure interrupt pin and interrupt sources, enable and configure differential pressure interrupts
     pub fn configure_interrupts(
-        &mut self,
-        //flag: bool,
+        &mut self,        
         config: InterruptConfig,
     ) -> Result<(), T::Error> {
         match config.enable_differential {
             FLAG::Enabled => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
             FLAG::Disabled => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
         }?;
-
         self.interface
             .write(Registers::CTRL_REG3.addr(), config.int_ctrl_reg3())?;
         self.interface
@@ -123,88 +120,7 @@ where
             .write(Registers::INTERRUPT_CFG.addr(), config.int_interrupt_cfg())?;
         Ok(())
     }
-
-    // --- THE FOLLOWING SECTION COULD BE REMOVED --- 
-
-    /*
-
-    /// Configuration of the interrupt generation (enabled/disable)
-    pub fn int_generation_enable(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
-            false => self.clear_register_bit_flag(Registers::CTRL_REG1, Bitmasks::DIFF_EN),
-        }
-    }
-
-    /// Interrupt request latching to INT_SOURCE
-    pub fn int_latch_enable(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::LIR),
-            false => self.clear_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::LIR),
-        }
-    }
-
-    /// Enable interrupt on differential pressure low event
-    pub fn diff_press_low_enable(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::PL_E),
-            false => self.clear_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::PL_E),
-        }
-    }
-
-    /// Enable interrupt on differential pressure high event
-    pub fn diff_press_high_enable(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::PH_E),
-            false => self.clear_register_bit_flag(Registers::INTERRUPT_CFG, Bitmasks::PH_E),
-        }
-    }
-
-    /// Data-ready signal on INT_DRDY pin
-    pub fn data_signal_drdy_enable(&mut self, flag: bool) -> Result<(), T::Error> {
-        match flag {
-            true => self.set_register_bit_flag(Registers::CTRL_REG4, Bitmasks::DRDY),
-            false => self.clear_register_bit_flag(Registers::CTRL_REG4, Bitmasks::DRDY),
-        }
-    }
-
-    /// Interrupt active high/low (default active high)
-    pub fn interrupt_pin_active(&mut self, setting: INT_ACTIVE) -> Result<(), T::Error> {
-        match setting {
-            INT_ACTIVE::High => {
-                self.clear_register_bit_flag(Registers::CTRL_REG3, Bitmasks::INT_H_L)
-            }
-            INT_ACTIVE::Low => self.set_register_bit_flag(Registers::CTRL_REG3, Bitmasks::INT_H_L),
-        }
-    }
-
-    /// Interrupt pin configuration: push-pull (default) or open drain
-    pub fn interrupt_pin_config(&mut self, setting: INT_PIN) -> Result<(), T::Error> {
-        match setting {
-            INT_PIN::PushPull => {
-                self.clear_register_bit_flag(Registers::CTRL_REG3, Bitmasks::PP_OD)
-            }
-            INT_PIN::OpenDrain => self.set_register_bit_flag(Registers::CTRL_REG3, Bitmasks::PP_OD),
-        }
-    }
-
-    /// Configure INT_DRDY pin
-    pub fn int_drdy_config(&mut self, config: INT_DRDY) -> Result<(), T::Error> {
-        let mut reg_data = [0u8];
-        self.interface
-            .read(Registers::CTRL_REG3.addr(), &mut reg_data)?;
-        let mut payload = reg_data[0];
-        payload &= !Bitmasks::INT_S_MASK;
-        payload |= config.value();
-        self.interface.write(Registers::CTRL_REG3.addr(), payload)?;
-        Ok(())
-    }
-
-    */
-
-    // --- END OF THE SECTION THAT COULD BE REMOVED --- 
-
-
+ 
     /// Get all the flags from the INT_SOURCE register (NOTE: INT_SOURCE register is cleared by reading it)
     pub fn get_int_status(&mut self) -> Result<IntStatus, T::Error> {        
                 
@@ -227,37 +143,7 @@ where
                 _ => true,
             },           
         };
-
-        /*
-        let status = IntSource {
-            /// Has any interrupt event been generated? (self clearing)
-            interrupt_active: self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::IA)?,
-            /// Has low differential pressure event been generated? (self clearing)
-            diff_press_low: self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::PL)?,
-            /// Has high differential pressure event been generated? (self clearing)
-            diff_press_high: self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::PH)?,
-        };
-        */
+        
         Ok(status)
     }
-
-    // --- THESE FUNCTIONS COULD BE REMOVED ---
-
-    /*
-
-    /// Has any interrupt event been generated? (self clearing)
-    pub fn interrupt_active(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::IA)
-    }
-
-    /// Has low differential pressure event been generated? (self clearing)
-    pub fn low_pressure_event_occurred(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::PL)
-    }
-
-    /// Has high differential pressure event been generated? (self clearing)
-    pub fn high_pressure_event_occurred(&mut self) -> Result<bool, T::Error> {
-        self.is_register_bit_flag_high(Registers::INT_SOURCE, Bitmasks::PH)
-    }
-     */
 }
