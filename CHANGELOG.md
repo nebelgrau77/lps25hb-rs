@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.2.3] - 2022-01-28
+## [0.1.2] - 2022-01-28
 
 ### Changed
 - MULTIBYTE read implemented directly in `interface/i2c.rs` instead of specific functions in `sensor.rs`
@@ -13,12 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 - SPI interface temporarily disabled, trying to figure out how to get MS_BIT to work
 
-## [0.2.1] - 2022-01-23
 
-### Added
-- SPI interface
-
-## [0.2.0] - 2021-12-12
+## [0.1.1] - 2021-12-12
 
 ### Changed
 - enable_interrupts() becomes configure_interrupts(), and the flag becomes a field of the configuration stuct (enable_differential)
