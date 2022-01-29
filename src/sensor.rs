@@ -32,7 +32,7 @@ where
     pub fn read_pressure(&mut self) -> Result<f32, T::Error> {
         let mut data = [0u8; 3];
         self.interface.read(
-            Registers::PRESS_OUT_XL.addr() | Bitmasks::MULTIBYTE,
+            Registers::PRESS_OUT_XL.addr(),
             &mut data,
         )?;
         let p: i32 = (data[2] as i32) << 16 | (data[1] as i32) << 8 | (data[0] as i32);
@@ -44,7 +44,7 @@ where
     pub fn read_temperature(&mut self) -> Result<f32, T::Error> {
         let mut data = [0u8; 2];
         self.interface.read(
-            Registers::TEMP_OUT_L.addr() | Bitmasks::MULTIBYTE,
+            Registers::TEMP_OUT_L.addr(),
             &mut data,
         )?;
         let t: i16 = (data[1] as i16) << 8 | (data[0] as i16);
@@ -55,7 +55,7 @@ where
     /// Calculated reference pressure reading in hPa
     pub fn read_reference_pressure(&mut self) -> Result<f32, T::Error> {
         let mut data = [0u8; 3];
-        self.interface.read(Registers::REF_P_XL.addr() | Bitmasks::MULTIBYTE, &mut data)?;
+        self.interface.read(Registers::REF_P_XL.addr(), &mut data)?;
         let p: i32 = (data[2] as i32) << 16 | (data[1] as i32) << 8 | (data[0] as i32);
         let pressure: f32 = (p as f32) / PRESS_SCALE;
         Ok(pressure)
@@ -65,7 +65,7 @@ where
     pub fn read_pressure_offset(&mut self) -> Result<i16, T::Error> {
         let mut data = [0u8; 2];
         self.interface
-            .read(Registers::RPDS_L.addr() | Bitmasks::MULTIBYTE, &mut data)?;
+            .read(Registers::RPDS_L.addr(), &mut data)?;
         let o: i16 = (data[1] as i16) << 8 | (data[0] as i16);
         Ok(o)
     }
@@ -74,7 +74,7 @@ where
     pub fn read_threshold(&mut self) -> Result<i16, T::Error> {
         let mut data = [0u8; 2];
         self.interface
-            .read(Registers::THS_P_L.addr() | Bitmasks::MULTIBYTE, &mut data)?;
+            .read(Registers::THS_P_L.addr(), &mut data)?;
         let ths: i16 = (data[1] as i16) << 8 | (data[0] as i16);
         // Ok(ths * 16) // this is wrong,
         Ok(ths / 16) // this will return value in hPa

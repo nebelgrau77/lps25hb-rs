@@ -31,7 +31,7 @@ impl I2cAddress {
 /// This holds `I2C` and device address
 pub struct I2cInterface<I2C> {
     i2c: I2C,
-    dev_addr: u8,    
+    dev_addr: u8,            
 }
 
 impl<I2C> I2cInterface<I2C> {
@@ -42,7 +42,7 @@ impl<I2C> I2cInterface<I2C> {
     pub fn init(i2c: I2C, dev_addr: I2cAddress) -> Self {
         Self {
             i2c,
-            dev_addr: dev_addr.addr(),            
+            dev_addr: dev_addr.addr(),                
         }
     }
 }
@@ -69,7 +69,7 @@ where
         core::prelude::v1::Ok(
             self.i2c
                 //.write_read(sensor_addr, &[addr], buffer)
-                .write_read(self.dev_addr, &[addr], buffer)
+                .write_read(self.dev_addr, &[MULTIBYTE | addr], buffer)
                 .map_err(Error::Comm)?,
         )
     }

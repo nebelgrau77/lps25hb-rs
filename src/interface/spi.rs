@@ -1,12 +1,15 @@
 //! SPI Interface
 
+// MULTIBYTE READ DOESN'T WORK AS EXPECTED YET, SPI CURRENTLY DISABLED
+
+
 use super::Interface;
 use embedded_hal::{blocking::spi::Transfer, blocking::spi::Write, digital::v2::OutputPin};
 
 
 /// R/W bit should be high for SPI Read operation
 const SPI_READ: u8 = 0x80;
-/// Magnetometer MS bit. When 0, does not increment the address; when 1, increments the address in multiple reads. (Refer to page 34)
+/// MS bit. When 0, does not increment the address; when 1, increments the address in multiple reads.
 const MS_BIT: u8 = 0x40;
 
 /// Errors in this crate
@@ -22,6 +25,7 @@ pub enum Error<CommE, PinE> {
 pub struct SpiInterface<SPI, CS> {
     spi: SPI,
     cs: CS,    
+    multibyte: u8,
 }
 
 impl<SPI, CS, CommE, PinE> SpiInterface<SPI, CS>
@@ -34,7 +38,7 @@ where
     /// * `spi` - SPI instance
     /// * `cs` - Chip Select pin
     pub fn init(spi: SPI, cs: CS) -> Self {
-        Self { spi, cs }
+        Self { spi, cs, multibyte: MS_BIT }
     }
 }
 

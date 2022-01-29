@@ -131,7 +131,4 @@ impl Bitmasks {
     pub (crate) const EMPTY_FIFO: u8 = 0b0010_0000;
     pub (crate) const FSS_MASK: u8 = 0b0001_1111;
 
-    // === MULTIBYTE READ ===
-    /// Must be OR'ed with the register address to enable multibyte data reading (temperature/pressure)
-    pub (crate) const MULTIBYTE: u8 = 0b1000_0000;
 }
